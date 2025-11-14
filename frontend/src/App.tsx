@@ -343,10 +343,9 @@ Key takeaways: ${userMessage}`
                     {tools.map((tool) => (
                       <div
                         key={tool.id}
-                        className="flex items-center gap-3 rounded-box border border-base-200 bg-base-100/80 p-3"
+                        className="rounded-box border border-base-200 bg-base-100/80 p-3 text-sm font-medium"
                       >
-                        <span className="badge badge-outline">{tool.id}</span>
-                        <span>{tool.label[language]}</span>
+                        {tool.label[language]}
                       </div>
                     ))}
                   </div>
