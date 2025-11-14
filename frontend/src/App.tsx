@@ -1,20 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
-
-const tools = [
-  { id: 'calculator', label: { en: 'Calculator', zh: '计算器' } },
-  { id: 'calendar', label: { en: 'Calendar lookup', zh: '日历查询' } },
-  { id: 'code', label: { en: 'Code executor', zh: '代码执行器' } },
-  { id: 'weather', label: { en: 'Weather API', zh: '天气 API' } },
-]
-
-type Language = 'en' | 'zh'
-
-type Message = {
-  role: 'user' | 'assistant'
-  content: string
-  annotations?: string[]
-}
 
 const translations = {
   en: {
@@ -28,6 +13,7 @@ const translations = {
     chooseTools: 'Available tools',
     language: 'Language',
     chatTitle: 'Chat playground',
+    chatSubtitle: 'Agent loop visualized',
     inputPlaceholder: 'Ask anything to the agent...',
     send: 'Send',
     clear: 'Clear chat',
@@ -35,6 +21,15 @@ const translations = {
     reasoning: 'Agent reasoning',
     using: 'Using',
     idle: 'No extra actions were required. Returning the answer.',
+    badges: {
+      rag: 'RAG lookup',
+      web: 'Web search',
+      tool: 'Tool call',
+    },
+    participants: {
+      user: 'You',
+      agent: 'Agent',
+    },
   },
   zh: {
     title: 'Agent RAG 演示',
@@ -47,6 +42,7 @@ const translations = {
     chooseTools: '可用工具',
     language: '界面语言',
     chatTitle: '聊天演练场',
+    chatSubtitle: '智能体循环可视化',
     inputPlaceholder: '向智能体提问...',
     send: '发送',
     clear: '清空对话',
@@ -54,8 +50,61 @@ const translations = {
     reasoning: '智能体推理',
     using: '使用',
     idle: '无需额外操作，直接返回答案。',
+    badges: {
+      rag: 'RAG 检索',
+      web: '网络搜索',
+      tool: '工具调用',
+    },
+    participants: {
+      user: '你',
+      agent: '智能体',
+    },
   },
+  'zh-hant': {
+    title: 'Agent RAG 示範',
+    subtitle: '上傳文件、切換能力，觀察智慧體如何規劃工作流程。',
+    uploadLabel: 'RAG 文件',
+    uploadHint: '拖曳檔案或點擊選擇',
+    uploaded: '已上傳',
+    webSearch: '啟用網路搜尋',
+    tools: '啟用工具',
+    chooseTools: '可用工具',
+    language: '介面語言',
+    chatTitle: '聊天練習場',
+    chatSubtitle: '智慧體循環視覺化',
+    inputPlaceholder: '向智慧體提問...',
+    send: '傳送',
+    clear: '清除對話',
+    welcome: '你好！我會在需要時自動決定是否使用 RAG、搜尋或工具。',
+    reasoning: '智慧體推理',
+    using: '使用',
+    idle: '無需額外操作，直接回覆答案。',
+    badges: {
+      rag: 'RAG 檢索',
+      web: '網路搜尋',
+      tool: '工具呼叫',
+    },
+    participants: {
+      user: '你',
+      agent: '智慧體',
+    },
+  },
+} as const
+
+type Language = keyof typeof translations
+
+type Message = {
+  role: 'user' | 'assistant'
+  content: string
+  annotations?: string[]
 }
+
+const tools: { id: string; label: Record<Language, string> }[] = [
+  { id: 'calculator', label: { en: 'Calculator', zh: '计算器', 'zh-hant': '計算器' } },
+  { id: 'calendar', label: { en: 'Calendar lookup', zh: '日历查询', 'zh-hant': '行事曆查詢' } },
+  { id: 'code', label: { en: 'Code executor', zh: '代码执行器', 'zh-hant': '程式執行器' } },
+  { id: 'weather', label: { en: 'Weather API', zh: '天气 API', 'zh-hant': '天氣 API' } },
+]
 
 function App() {
   const [language, setLanguage] = useState<Language>('zh')
@@ -70,13 +119,7 @@ function App() {
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
 
-  const actionBadges = useMemo(() => {
-    return {
-      rag: language === 'en' ? 'RAG lookup' : 'RAG 检索',
-      web: language === 'en' ? 'Web search' : '网络搜索',
-      tool: language === 'en' ? 'Tool call' : '工具调用',
-    }
-  }, [language])
+  const actionBadges = t.badges
 
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return
@@ -90,9 +133,10 @@ function App() {
   }
 
   const simulateAgent = async (userMessage: string) => {
-    const needsRag = documents.length > 0 && /doc|资料|paper/i.test(userMessage)
-    const needsWeb = enableWebSearch && /\?|news|最新|weather/i.test(userMessage)
-    const needsTool = enableTools && selectedTools.length > 0 && /calc|计算|schedule/i.test(userMessage)
+    const needsRag = documents.length > 0 && /doc|资料|資料|paper/i.test(userMessage)
+    const needsWeb = enableWebSearch && /\?|news|最新|weather|天氣/i.test(userMessage)
+    const needsTool =
+      enableTools && selectedTools.length > 0 && /calc|计算|計算|schedule|行程/i.test(userMessage)
 
     const annotations: string[] = []
     if (needsRag) annotations.push(actionBadges.rag)
@@ -107,8 +151,11 @@ function App() {
       language === 'en'
         ? `I reviewed your message and ${utilization.toLowerCase()}.
 Key takeaways: ${userMessage}`
-        : `我分析了你的输入，并且${utilization}。
+        : language === 'zh'
+          ? `我分析了你的输入，并且${utilization}。
 要点：${userMessage}`
+          : `我分析了你的輸入，並且${utilization}。
+重點：${userMessage}`
 
     return { content: answer, annotations: annotations.length ? annotations : [t.reasoning] }
   }
@@ -145,7 +192,13 @@ Key takeaways: ${userMessage}`
                 className={`btn btn-sm join-item ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
                 onClick={() => setLanguage('zh')}
               >
-                中文
+                简体中文
+              </button>
+              <button
+                className={`btn btn-sm join-item ${language === 'zh-hant' ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() => setLanguage('zh-hant')}
+              >
+                繁體中文
               </button>
               <button
                 className={`btn btn-sm join-item ${language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
@@ -236,7 +289,7 @@ Key takeaways: ${userMessage}`
             <header className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t.chatTitle}</h2>
-                <p className="text-sm opacity-70">{language === 'en' ? 'Agent loop visualized' : '智能体循环可视化'}</p>
+                <p className="text-sm opacity-70">{t.chatSubtitle}</p>
               </div>
               <button className="btn btn-ghost btn-sm" onClick={handleClear}>
                 {t.clear}
@@ -248,7 +301,7 @@ Key takeaways: ${userMessage}`
                 {messages.map((message, index) => (
                   <div key={index} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
                     <div className="chat-header mb-1 text-xs uppercase tracking-wide opacity-60">
-                      {message.role === 'user' ? 'You' : 'Agent'}
+                      {message.role === 'user' ? t.participants.user : t.participants.agent}
                     </div>
                     <div className="chat-bubble max-w-full whitespace-pre-line text-left">
                       {message.content}
