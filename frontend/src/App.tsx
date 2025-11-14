@@ -231,8 +231,8 @@ Key takeaways: ${userMessage}`
           </div>
         </div>
         <div className="flex flex-col gap-6 lg:flex-row">
-          <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl">
-            <div className="card-body gap-6">
+          <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl h-[520px] lg:h-[700px]">
+            <div className="card-body h-full gap-6 overflow-y-auto">
               <header>
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">
                   {t.title}
@@ -326,8 +326,8 @@ Key takeaways: ${userMessage}`
             </div>
           </section>
 
-        <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl">
-          <div className="card-body">
+        <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl h-[520px] lg:h-[700px]">
+          <div className="card-body flex h-full flex-col">
             <header className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t.chatTitle}</h2>
