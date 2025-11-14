@@ -8,8 +8,15 @@ const translations = {
     uploadLabel: 'RAG documents',
     uploadHint: 'Drag & drop files or click to select',
     uploaded: 'uploaded',
+    knowledgeBaseTitle: 'Knowledge base',
+    knowledgeBaseDescription: 'Keep your domain files close for grounded answers.',
+    supportedFormats: 'Supported formats: txt, doc',
     webSearch: 'Enable web search',
+    webSearchTitle: 'Web search',
+    webSearchDescription: 'Let the agent reach the web for fresh context.',
     tools: 'Enable tools',
+    toolsTitle: 'Tools calling',
+    toolsDescription: 'Choose which utilities the agent may call mid-conversation.',
     chooseTools: 'Available tools',
     language: 'Language',
     chatTitle: 'Chat playground',
@@ -37,8 +44,15 @@ const translations = {
     uploadLabel: 'RAG 文档',
     uploadHint: '拖拽文件或点击选择',
     uploaded: '已上传',
+    knowledgeBaseTitle: '知识库',
+    knowledgeBaseDescription: '上传业务文档，回答更有依据。',
+    supportedFormats: '支持 txt、doc 格式',
     webSearch: '启用网络搜索',
+    webSearchTitle: 'Web 搜索',
+    webSearchDescription: '需要最新信息时放权给智能体访问网络。',
     tools: '启用工具',
+    toolsTitle: 'Tools 调用',
+    toolsDescription: '挑选智能体可调用的工具，按需扩展能力。',
     chooseTools: '可用工具',
     language: '界面语言',
     chatTitle: '聊天演练场',
@@ -66,8 +80,15 @@ const translations = {
     uploadLabel: 'RAG 文件',
     uploadHint: '拖曳檔案或點擊選擇',
     uploaded: '已上傳',
+    knowledgeBaseTitle: '知識庫',
+    knowledgeBaseDescription: '上傳領域文件，讓答案更有依據。',
+    supportedFormats: '支援 txt、doc 格式',
     webSearch: '啟用網路搜尋',
+    webSearchTitle: '網路搜尋',
+    webSearchDescription: '需要最新資訊時授權智慧體連網。',
     tools: '啟用工具',
+    toolsTitle: '工具呼叫',
+    toolsDescription: '挑選智慧體可使用的工具，延伸能力。',
     chooseTools: '可用工具',
     language: '介面語言',
     chatTitle: '聊天練習場',
@@ -220,69 +241,90 @@ Key takeaways: ${userMessage}`
                 <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
               </header>
 
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">{t.uploadLabel}</span>
-                <span className="label-text-alt opacity-70">
-                  {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
-                </span>
-              </label>
-              <input
-                type="file"
-                multiple
-                className="file-input file-input-bordered"
-                onChange={handleUpload}
-              />
-              {documents.length > 0 && (
-                <ul className="mt-3 space-y-1 rounded-box bg-base-200 p-3 text-sm">
-                  {documents.map((file) => (
-                    <li key={file.name} className="flex items-center justify-between">
-                      <span>{file.name}</span>
-                      <span className="text-xs opacity-60">{(file.size / 1024).toFixed(1)} KB</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+              <div className="space-y-6">
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                  <p className="text-base font-semibold text-primary">
+                    {t.knowledgeBaseTitle}
+                  </p>
+                  <p className="mb-4 mt-2 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold">{t.uploadLabel}</span>
+                      <span className="label-text-alt opacity-70">
+                        {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
+                      </span>
+                    </label>
+                    <input
+                      type="file"
+                      accept=".txt,.doc"
+                      multiple
+                      className="file-input file-input-bordered"
+                      onChange={handleUpload}
+                    />
+                    <p className="mt-2 text-xs text-base-content/60">{t.supportedFormats}</p>
+                    {documents.length > 0 && (
+                      <ul className="mt-3 space-y-1 rounded-box bg-base-200 p-3 text-sm">
+                        {documents.map((file) => (
+                          <li key={file.name} className="flex items-center justify-between">
+                            <span>{file.name}</span>
+                            <span className="text-xs opacity-60">{(file.size / 1024).toFixed(1)} KB</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
 
-            <div className="flex flex-col gap-4 rounded-box border border-base-200 p-4">
-              <label className="label cursor-pointer justify-start gap-4">
-                <input
-                  type="checkbox"
-                  className="checkbox"
-                  checked={enableWebSearch}
-                  onChange={(event) => setEnableWebSearch(event.target.checked)}
-                />
-                <span className="label-text font-semibold">{t.webSearch}</span>
-              </label>
-              <label className="label cursor-pointer justify-start gap-4">
-                <input
-                  type="checkbox"
-                  className="checkbox"
-                  checked={enableTools}
-                  onChange={(event) => setEnableTools(event.target.checked)}
-                />
-                <span className="label-text font-semibold">{t.tools}</span>
-              </label>
-              <div className="divider my-0" />
-              <p className="text-sm font-semibold">{t.chooseTools}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {tools.map((tool) => (
-                  <label key={tool.id} className="label cursor-pointer justify-start gap-3 rounded-box border border-base-200 p-3">
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                  <p className="text-base font-semibold text-primary">
+                    {t.webSearchTitle}
+                  </p>
+                  <p className="mb-4 mt-2 text-sm opacity-70">{t.webSearchDescription}</p>
+                  <label className="label cursor-pointer justify-start gap-4">
                     <input
                       type="checkbox"
                       className="checkbox"
-                      checked={selectedTools.includes(tool.id) && enableTools}
-                      disabled={!enableTools}
-                      onChange={() => toggleTool(tool.id)}
+                      checked={enableWebSearch}
+                      onChange={(event) => setEnableWebSearch(event.target.checked)}
                     />
-                    <span>{tool.label[language]}</span>
+                    <span className="label-text font-semibold">{t.webSearch}</span>
                   </label>
-                ))}
+                </div>
+
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                  <p className="text-base font-semibold text-primary">
+                    {t.toolsTitle}
+                  </p>
+                  <p className="mb-4 mt-2 text-sm opacity-70">{t.toolsDescription}</p>
+                  <label className="label cursor-pointer justify-start gap-4">
+                    <input
+                      type="checkbox"
+                      className="checkbox"
+                      checked={enableTools}
+                      onChange={(event) => setEnableTools(event.target.checked)}
+                    />
+                    <span className="label-text font-semibold">{t.tools}</span>
+                  </label>
+                  <div className="divider my-3" />
+                  <p className="text-sm font-semibold">{t.chooseTools}</p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {tools.map((tool) => (
+                      <label key={tool.id} className="label cursor-pointer justify-start gap-3 rounded-box border border-base-200 p-3">
+                        <input
+                          type="checkbox"
+                          className="checkbox"
+                          checked={selectedTools.includes(tool.id) && enableTools}
+                          disabled={!enableTools}
+                          onChange={() => toggleTool(tool.id)}
+                        />
+                        <span>{tool.label[language]}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
         <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl">
           <div className="card-body">
