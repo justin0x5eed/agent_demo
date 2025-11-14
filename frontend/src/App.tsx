@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 const translations = {
@@ -139,6 +139,8 @@ function App() {
   ])
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
+  const leftPanelRef = useRef<HTMLElement | null>(null)
+  const [panelHeight, setPanelHeight] = useState<number | null>(null)
 
   const actionBadges = t.badges
 
@@ -200,6 +202,31 @@ Key takeaways: ${userMessage}`
     setMessages([{ role: 'assistant', content: t.welcome, annotations: [t.reasoning] }])
   }
 
+  useEffect(() => {
+    const updatePanelHeight = () => {
+      if (leftPanelRef.current) {
+        setPanelHeight(leftPanelRef.current.offsetHeight)
+      }
+    }
+
+    updatePanelHeight()
+
+    const resizeObserver = leftPanelRef.current
+      ? new ResizeObserver(updatePanelHeight)
+      : null
+
+    if (leftPanelRef.current && resizeObserver) {
+      resizeObserver.observe(leftPanelRef.current)
+    }
+
+    window.addEventListener('resize', updatePanelHeight)
+
+    return () => {
+      window.removeEventListener('resize', updatePanelHeight)
+      resizeObserver?.disconnect()
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-4 text-base-content md:p-10">
       <div className="mx-auto max-w-6xl">
@@ -231,7 +258,10 @@ Key takeaways: ${userMessage}`
           </div>
         </div>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
-          <section className="card flex min-h-0 flex-1 flex-col border border-base-300 bg-base-100 shadow-xl">
+          <section
+            ref={leftPanelRef}
+            className="card flex min-h-0 flex-1 flex-col border border-base-300 bg-base-100 shadow-xl"
+          >
             <div className="card-body flex h-full min-h-0 flex-col">
               <header>
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">
@@ -326,7 +356,10 @@ Key takeaways: ${userMessage}`
             </div>
           </section>
 
-        <section className="card flex min-h-0 flex-1 flex-col border border-base-300 bg-base-100 shadow-xl">
+        <section
+          className="card flex min-h-0 flex-1 flex-col overflow-hidden border border-base-300 bg-base-100 shadow-xl"
+          style={panelHeight ? { height: panelHeight } : undefined}
+        >
           <div className="card-body flex h-full min-h-0 flex-col">
             <header className="mb-4 flex items-center justify-between">
               <div>
