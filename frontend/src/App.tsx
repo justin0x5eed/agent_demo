@@ -133,9 +133,7 @@ function App() {
   const [documents, setDocuments] = useState<File[]>([])
   const [enableWebSearch, setEnableWebSearch] = useState(true)
   const [enableTools, setEnableTools] = useState(true)
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: t.welcome, annotations: [t.reasoning] },
-  ])
+  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: t.welcome }])
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
   const leftPanelRef = useRef<HTMLElement | null>(null)
@@ -173,7 +171,7 @@ Key takeaways: ${userMessage}`
           : `我分析了你的輸入，並且${utilization}。
 重點：${userMessage}`
 
-    return { content: answer, annotations: annotations.length ? annotations : [t.reasoning] }
+    return annotations.length ? { content: answer, annotations } : { content: answer }
   }
 
   const handleSend = async () => {
@@ -192,7 +190,7 @@ Key takeaways: ${userMessage}`
   }
 
   const handleClear = () => {
-    setMessages([{ role: 'assistant', content: t.welcome, annotations: [t.reasoning] }])
+    setMessages([{ role: 'assistant', content: t.welcome }])
   }
 
   useEffect(() => {
@@ -382,7 +380,7 @@ Key takeaways: ${userMessage}`
                     <div className="chat-bubble max-w-full whitespace-pre-line text-left">
                       {message.content}
                     </div>
-                    {message.annotations && (
+                    {message.annotations?.length ? (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {message.annotations.map((annotation) => (
                           <div key={annotation} className="badge badge-outline">
@@ -390,7 +388,7 @@ Key takeaways: ${userMessage}`
                           </div>
                         ))}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 ))}
                 {pending && (
