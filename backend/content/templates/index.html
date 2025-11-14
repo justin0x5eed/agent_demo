@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Django + Vite 集成{% endblock %}
+
+{% block head_extra %}
+    {% if not debug %}
+        <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}">
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="flex min-h-screen items-center justify-center bg-base-200 p-6 text-base-content">
+    <div class="grid w-full max-w-5xl gap-8 lg:grid-cols-2  items-stretch">
+    <div id="counter_root">
+        <div class="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+            <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
+            <p class="text-lg font-semibold">正在载入 React 界面…</p>
+            <p class="max-w-xl text-sm text-base-content/70">
+                如果 Tailwind 与 daisyUI 正常工作，你会看到前端应用自动挂载在这里。
+            </p>
+        </div>
+    </div>
+    <div id="progress_root">
+        <div class="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+            <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
+            <p class="text-lg font-semibold">正在载入 React 界面…</p>
+            <p class="max-w-xl text-sm text-base-content/70">
+                如果 Tailwind 与 daisyUI 正常工作，你会看到前端应用自动挂载在这里。
+            </p>
+        </div>
+    </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block body_scripts %}
+    {% if debug %}
+      <!-- ✅ 开发模式：Vite 热更新 -->
+      <script type="module" src="http://192.168.50.20:5173/@vite/client"></script>
+      <script type="module">
+        import RefreshRuntime from 'http://192.168.50.20:5173/@react-refresh'
+
+        RefreshRuntime.injectIntoGlobalHook(window)
+        window.$RefreshReg$ = () => {}
+        window.$RefreshSig$ = () => (type) => type
+        window.__vite_plugin_react_preamble_installed__ = true
+      </script>
+      <script type="module" src="http://192.168.50.20:5173/src/main.tsx"></script>
+    {% else %}
+      <!-- ✅ 生产模式：加载静态打包文件 -->
+      <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}">
+      <script type="module" src="{% static 'dist/assets/index.js' %}"></script>
+    {% endif %}
+{% endblock %}

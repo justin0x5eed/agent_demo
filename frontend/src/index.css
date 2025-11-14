@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@source "../backend/backend/templates/**/*.{html,txt}";
+@source "../backend/backend/**/*.py";

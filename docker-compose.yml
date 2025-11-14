@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:17.6
+    restart: always
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      LANG: C.UTF8
+      LC_ALL: C.UTF8
+      TZ: Asia/Shanghai
+
+  web:
+    build: ./backend
+    command: ["./wait-for-it.sh", "db:5432", "--", "uwsgi", "--ini", "/code/config/uwsgi/uwsgi.ini"]
+    restart: always
+    volumes:
+      - .:/code
+    environment:
+      - DJANGO_SETTINGS_MODULE=cv.settings.settings
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - MPLCONFIGDIR=/tmp/matplotlib
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:1.29.1
+    restart: always
+    volumes:
+      - ./config/nginx:/etc/nginx/templates
+      - .:/code
+    ports:
+      - "8006:80"
