@@ -14,6 +14,12 @@ dialog::backdrop {
   scrollbar-color: rgba(59, 130, 246, 0.6) transparent;
 }
 
+.chat-window .chat-bubble {
+  /* Prevent very long messages from stretching the chat panel */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .chat-window::-webkit-scrollbar {
   width: 8px;
 }
