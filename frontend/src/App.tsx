@@ -339,7 +339,7 @@ Key takeaways: ${userMessage}`
             </header>
 
             <div className="flex min-h-0 flex-1 flex-col gap-4">
-              <div className="flex-1 min-h-0 space-y-4 overflow-y-auto rounded-box border border-base-200 p-4">
+              <div className="chat-window flex-1 min-h-0 space-y-4 overflow-y-auto rounded-box border border-base-200 p-4">
                 {messages.map((message, index) => (
                   <div key={index} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
                     <div className="chat-header mb-1 text-xs uppercase tracking-wide opacity-60">
