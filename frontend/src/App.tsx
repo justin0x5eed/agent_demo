@@ -230,8 +230,8 @@ Key takeaways: ${userMessage}`
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl min-h-[520px] lg:min-h-[700px]">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+          <section className="card flex flex-1 flex-col border border-base-300 bg-base-100 shadow-xl min-h-[520px] lg:min-h-[700px]">
             <div className="card-body h-full gap-6">
               <header>
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">
@@ -326,8 +326,8 @@ Key takeaways: ${userMessage}`
             </div>
           </section>
 
-        <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl min-h-[520px] lg:min-h-[700px]">
-          <div className="card-body flex h-full flex-col overflow-y-auto">
+        <section className="card flex flex-1 flex-col border border-base-300 bg-base-100 shadow-xl min-h-[520px] lg:min-h-[700px]">
+          <div className="card-body flex h-full flex-col overflow-hidden">
             <header className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t.chatTitle}</h2>
@@ -338,8 +338,8 @@ Key takeaways: ${userMessage}`
               </button>
             </header>
 
-            <div className="flex flex-1 flex-col gap-4">
-              <div className="flex-1 space-y-4 overflow-y-auto rounded-box border border-base-200 p-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-4">
+              <div className="flex-1 min-h-0 space-y-4 overflow-y-auto rounded-box border border-base-200 p-4">
                 {messages.map((message, index) => (
                   <div key={index} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
                     <div className="chat-header mb-1 text-xs uppercase tracking-wide opacity-60">
