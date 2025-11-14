@@ -45,6 +45,6 @@ if (typeof window !== 'undefined') {
 export const components = {
   App,
   Counter,
-  ProgressDemo,
+  Progress,
 }
 
