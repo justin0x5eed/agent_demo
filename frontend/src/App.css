@@ -7,6 +7,9 @@ dialog::backdrop {
 }
 
 .chat-window {
+  /* Ensure the chat panel can scroll when content overflows */
+  overflow-y: auto;
+  max-height: 100%;
   scrollbar-width: thin;
   scrollbar-color: rgba(59, 130, 246, 0.6) transparent;
 }
