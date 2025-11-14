@@ -326,8 +326,8 @@ Key takeaways: ${userMessage}`
             </div>
           </section>
 
-        <section className="card flex min-h-0 flex-1 flex-col border border-base-300 bg-base-100 shadow-xl min-h-[520px] lg:min-h-[700px]">
-          <div className="card-body flex h-full min-h-0 flex-col overflow-hidden">
+        <section className="card flex min-h-0 flex-1 flex-col overflow-hidden border border-base-300 bg-base-100 shadow-xl min-h-[520px] lg:min-h-[700px] lg:max-h-[700px]">
+          <div className="card-body flex h-full min-h-0 flex-col">
             <header className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t.chatTitle}</h2>
