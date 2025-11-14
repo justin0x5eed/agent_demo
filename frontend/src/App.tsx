@@ -324,9 +324,9 @@ Key takeaways: ${userMessage}`
                 )}
               </div>
 
-              <label className="form-control">
+              <label className="form-control w-full">
                 <textarea
-                  className="textarea textarea-bordered"
+                  className="textarea textarea-bordered w-full"
                   rows={3}
                   placeholder={t.inputPlaceholder}
                   value={input}
