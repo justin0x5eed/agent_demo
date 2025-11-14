@@ -141,6 +141,7 @@ function App() {
   const [pending, setPending] = useState(false)
   const leftPanelRef = useRef<HTMLElement | null>(null)
   const [panelHeight, setPanelHeight] = useState<number | null>(null)
+  const chatWindowRef = useRef<HTMLDivElement | null>(null)
 
   const actionBadges = t.badges
 
@@ -226,6 +227,15 @@ Key takeaways: ${userMessage}`
       resizeObserver?.disconnect()
     }
   }, [])
+
+  useEffect(() => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTo({
+        top: chatWindowRef.current.scrollHeight,
+        behavior: 'smooth',
+      })
+    }
+  }, [messages, pending])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-4 text-base-content md:p-10">
@@ -372,7 +382,10 @@ Key takeaways: ${userMessage}`
             </header>
 
             <div className="flex min-h-0 flex-1 flex-col gap-4">
-              <div className="chat-window flex-1 min-h-0 overflow-y-auto rounded-box border border-base-200 p-4">
+              <div
+                ref={chatWindowRef}
+                className="chat-window flex-1 min-h-0 overflow-y-auto rounded-box border border-base-200 p-4"
+              >
                 {messages.map((message, index) => (
                   <div key={index} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
                     <div className="chat-header mb-1 text-xs uppercase tracking-wide opacity-60">
