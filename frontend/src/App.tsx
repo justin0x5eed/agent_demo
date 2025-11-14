@@ -133,7 +133,6 @@ function App() {
   const [documents, setDocuments] = useState<File[]>([])
   const [enableWebSearch, setEnableWebSearch] = useState(true)
   const [enableTools, setEnableTools] = useState(true)
-  const [selectedTools, setSelectedTools] = useState<string[]>([tools[0].id])
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: t.welcome, annotations: [t.reasoning] },
   ])
@@ -150,17 +149,10 @@ function App() {
     setDocuments(Array.from(event.target.files))
   }
 
-  const toggleTool = (id: string) => {
-    setSelectedTools((prev) =>
-      prev.includes(id) ? prev.filter((toolId) => toolId !== id) : [...prev, id],
-    )
-  }
-
   const simulateAgent = async (userMessage: string) => {
     const needsRag = documents.length > 0 && /doc|资料|資料|paper/i.test(userMessage)
     const needsWeb = enableWebSearch && /\?|news|最新|weather|天氣/i.test(userMessage)
-    const needsTool =
-      enableTools && selectedTools.length > 0 && /calc|计算|計算|schedule|行程/i.test(userMessage)
+    const needsTool = enableTools && /calc|计算|計算|schedule|行程/i.test(userMessage)
 
     const annotations: string[] = []
     if (needsRag) annotations.push(actionBadges.rag)
@@ -349,16 +341,13 @@ Key takeaways: ${userMessage}`
                   <p className="text-sm font-semibold">{t.chooseTools}</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {tools.map((tool) => (
-                      <label key={tool.id} className="label cursor-pointer justify-start gap-3 rounded-box border border-base-200 p-3">
-                        <input
-                          type="checkbox"
-                          className="checkbox"
-                          checked={selectedTools.includes(tool.id) && enableTools}
-                          disabled={!enableTools}
-                          onChange={() => toggleTool(tool.id)}
-                        />
+                      <div
+                        key={tool.id}
+                        className="flex items-center gap-3 rounded-box border border-base-200 bg-base-100/80 p-3"
+                      >
+                        <span className="badge badge-outline">{tool.id}</span>
                         <span>{tool.label[language]}</span>
-                      </label>
+                      </div>
                     ))}
                   </div>
                 </div>
