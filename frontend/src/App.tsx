@@ -134,36 +134,38 @@ Key takeaways: ${userMessage}`
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-4 text-base-content md:p-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 lg:flex-row">
-        <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl">
-          <div className="card-body gap-6">
-            <header>
-              <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-                {t.title}
-              </p>
-              <h1 className="text-3xl font-bold">Agentic RAG</h1>
-              <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
-            </header>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-semibold">{t.language}</span>
-              </label>
-              <div className="join">
-                <button
-                  className={`btn join-item ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
-                  onClick={() => setLanguage('zh')}
-                >
-                  中文
-                </button>
-                <button
-                  className={`btn join-item ${language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
-                  onClick={() => setLanguage('en')}
-                >
-                  English
-                </button>
-              </div>
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 flex justify-end">
+          <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
+            <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
+              {t.language}
+            </span>
+            <div className="join">
+              <button
+                className={`btn btn-sm join-item ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() => setLanguage('zh')}
+              >
+                中文
+              </button>
+              <button
+                className={`btn btn-sm join-item ${language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() => setLanguage('en')}
+              >
+                English
+              </button>
             </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <section className="card flex-1 border border-base-300 bg-base-100 shadow-xl">
+            <div className="card-body gap-6">
+              <header>
+                <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+                  {t.title}
+                </p>
+                <h1 className="text-3xl font-bold">Agentic RAG</h1>
+                <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
+              </header>
 
             <div className="form-control">
               <label className="label">
@@ -289,6 +291,7 @@ Key takeaways: ${userMessage}`
             </div>
           </div>
         </section>
+      </div>
       </div>
     </div>
   )
