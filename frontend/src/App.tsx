@@ -18,6 +18,9 @@ const translations = {
     toolsTitle: 'Tools calling',
     toolsDescription: 'Choose which utilities the agent may call mid-conversation.',
     chooseTools: 'Available tools',
+    modelTitle: 'Model selection',
+    modelDescription: 'Pick the foundation model the agent will use while responding.',
+    modelLabel: 'Available models',
     language: 'Language',
     chatTitle: 'Chat playground',
     chatSubtitle: 'Agent loop visualized',
@@ -54,6 +57,9 @@ const translations = {
     toolsTitle: 'Tools 调用',
     toolsDescription: '挑选智能体可调用的工具，按需扩展能力。',
     chooseTools: '可用工具',
+    modelTitle: '大模型选择',
+    modelDescription: '决定智能体回答时调用的大语言模型。',
+    modelLabel: '可用模型',
     language: '界面语言',
     chatTitle: '聊天演练场',
     chatSubtitle: '智能体循环可视化',
@@ -90,6 +96,9 @@ const translations = {
     toolsTitle: '工具呼叫',
     toolsDescription: '挑選智慧體可使用的工具，延伸能力。',
     chooseTools: '可用工具',
+    modelTitle: '大模型選擇',
+    modelDescription: '決定智慧體回覆時會使用的大型語言模型。',
+    modelLabel: '可用模型',
     language: '介面語言',
     chatTitle: '聊天練習場',
     chatSubtitle: '智慧體循環視覺化',
@@ -127,12 +136,19 @@ const tools: { id: string; label: Record<Language, string> }[] = [
   { id: 'weather', label: { en: 'Weather API', zh: '天气 API', 'zh-hant': '天氣 API' } },
 ]
 
+const modelOptions: { id: string; label: Record<Language, string> }[] = [
+  { id: 'qwen3', label: { en: 'Qwen 3', zh: 'Qwen 3', 'zh-hant': 'Qwen 3' } },
+  { id: 'gemma3', label: { en: 'Gemma 3', zh: 'Gemma 3', 'zh-hant': 'Gemma 3' } },
+  { id: 'gpt-oss', label: { en: 'GPT-OSS', zh: 'GPT-OSS', 'zh-hant': 'GPT-OSS' } },
+]
+
 function App() {
   const [language, setLanguage] = useState<Language>('zh')
   const t = translations[language]
   const [documents, setDocuments] = useState<File[]>([])
   const [enableWebSearch, setEnableWebSearch] = useState(true)
   const [enableTools, setEnableTools] = useState(true)
+  const [selectedModel, setSelectedModel] = useState(modelOptions[0].id)
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: t.welcome }])
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
@@ -161,14 +177,17 @@ function App() {
       ? `${t.using} ${annotations.join(' + ')}`
       : t.idle
 
+    const currentModelLabel =
+      modelOptions.find((option) => option.id === selectedModel)?.label[language] ?? selectedModel
+
     const answer =
       language === 'en'
-        ? `I reviewed your message and ${utilization.toLowerCase()}.
+        ? `I reviewed your message using ${currentModelLabel} and ${utilization.toLowerCase()}.
 Key takeaways: ${userMessage}`
         : language === 'zh'
-          ? `我分析了你的输入，并且${utilization}。
+          ? `我在 ${currentModelLabel} 的帮助下分析了你的输入，并且${utilization}。
 要点：${userMessage}`
-          : `我分析了你的輸入，並且${utilization}。
+          : `我在 ${currentModelLabel} 的協助下分析了你的輸入，並且${utilization}。
 重點：${userMessage}`
 
     return annotations.length ? { content: answer, annotations } : { content: answer }
@@ -272,6 +291,26 @@ Key takeaways: ${userMessage}`
               </header>
 
               <div className="space-y-6">
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                  <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
+                  <p className="mb-4 mt-2 text-sm opacity-70">{t.modelDescription}</p>
+                  <label className="label" htmlFor="model-select">
+                    <span className="label-text font-semibold">{t.modelLabel}</span>
+                  </label>
+                  <select
+                    id="model-select"
+                    className="select select-bordered w-full"
+                    value={selectedModel}
+                    onChange={(event) => setSelectedModel(event.target.value)}
+                  >
+                    {modelOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label[language]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
                   <p className="text-base font-semibold text-primary">
                     {t.knowledgeBaseTitle}
