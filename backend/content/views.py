@@ -24,7 +24,6 @@ def index(request):
 
     context = {
         "debug": settings.DEBUG,
-        "vite_dev_server": settings.VITE_DEV_SERVER,
         "vite_entrypoint": settings.VITE_ENTRYPOINT,
     }
 

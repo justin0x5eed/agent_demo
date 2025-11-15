@@ -1,13 +1,9 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static django_vite %}
 
 {% block title %}Django + Vite 集成{% endblock %}
 
-{% block head_extra %}
-    {% if not debug %}
-        <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}">
-    {% endif %}
-{% endblock %}
+{% block head_extra %}{% endblock %}
 
 {% block content %}
     <div id="vite_root">
@@ -22,21 +18,6 @@
 {% endblock %}
 
 {% block body_scripts %}
-    {% if debug %}
-      <!-- ✅ 开发模式：Vite 热更新 -->
-      <script type="module" src="http://47.242.1.178:12356/@vite/client"></script>
-      <script type="module">
-        import RefreshRuntime from 'http://47.242.1.178:12356/@react-refresh'
-
-        RefreshRuntime.injectIntoGlobalHook(window)
-        window.$RefreshReg$ = () => {}
-        window.$RefreshSig$ = () => (type) => type
-        window.__vite_plugin_react_preamble_installed__ = true
-      </script>
-      <script type="module" src="http://47.242.1.178:12356/{{ vite_entrypoint }}"></script>
-    {% else %}
-      <!-- ✅ 生产模式：加载静态打包文件 -->
-      <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}">
-      <script type="module" src="{% static 'dist/assets/index.js' %}"></script>
-    {% endif %}
+    {% vite_hmr_client %}
+    {% vite_asset vite_entrypoint %}
 {% endblock %}
