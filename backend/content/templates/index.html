@@ -24,16 +24,16 @@
 {% block body_scripts %}
     {% if debug %}
       <!-- ✅ 开发模式：Vite 热更新 -->
-      <script type="module" src="http://192.168.50.20:5173/@vite/client"></script>
+      <script type="module" src="{{ vite_dev_server }}/@vite/client"></script>
       <script type="module">
-        import RefreshRuntime from 'http://192.168.50.20:5173/@react-refresh'
+        import RefreshRuntime from '{{ vite_dev_server }}/@react-refresh'
 
         RefreshRuntime.injectIntoGlobalHook(window)
         window.$RefreshReg$ = () => {}
         window.$RefreshSig$ = () => (type) => type
         window.__vite_plugin_react_preamble_installed__ = true
       </script>
-      <script type="module" src="http://192.168.50.20:5173/src/main.tsx"></script>
+      <script type="module" src="{{ vite_dev_server }}/{{ vite_entrypoint }}"></script>
     {% else %}
       <!-- ✅ 生产模式：加载静态打包文件 -->
       <link rel="stylesheet" href="{% static 'dist/assets/index.css' %}">

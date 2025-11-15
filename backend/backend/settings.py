@@ -1,5 +1,6 @@
 """Django settings for backend project."""
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -83,7 +84,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR.parent / "frontend" / "dist"]
 
-VITE_DEV_SERVER = "http://192.168.50.20:5173"
+VITE_DEV_SERVER = "http://47.242.1.178:12356"
 VITE_ENTRYPOINT = "src/main.tsx"
 VITE_MANIFEST_PATH = BASE_DIR.parent / "frontend" / "dist" / "manifest.json"
 
