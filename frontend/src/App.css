@@ -5,3 +5,30 @@
 dialog::backdrop {
   background: rgba(15, 23, 42, 0.45);
 }
+
+.chat-window {
+  /* Ensure the chat panel can scroll when content overflows */
+  overflow-y: auto;
+  max-height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.6) transparent;
+}
+
+.chat-window .chat-bubble {
+  /* Prevent very long messages from stretching the chat panel */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.chat-window::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background-color: rgba(59, 130, 246, 0.6);
+  border-radius: 9999px;
+}
