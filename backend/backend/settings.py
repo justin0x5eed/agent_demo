@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_vite',
     'rest_framework',
     'content',
 ]
@@ -87,5 +88,10 @@ STATICFILES_DIRS = [BASE_DIR.parent / "frontend" / "dist"]
 VITE_DEV_SERVER = "http://47.242.1.178:12356"
 VITE_ENTRYPOINT = "src/main.tsx"
 VITE_MANIFEST_PATH = BASE_DIR.parent / "frontend" / "dist" / "manifest.json"
+
+DJANGO_VITE_DEV_MODE = DEBUG
+DJANGO_VITE_DEV_SERVER = VITE_DEV_SERVER
+DJANGO_VITE_ASSETS_PATH = VITE_MANIFEST_PATH.parent
+DJANGO_VITE_MANIFEST_PATH = VITE_MANIFEST_PATH
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
