@@ -129,6 +129,8 @@ type Message = {
   annotations?: string[]
 }
 
+const BACKEND_CHAT_ENDPOINT = 'http://47.242.1.178:12355/api/chat/messages/'
+
 const tools: { id: string; label: Record<Language, string> }[] = [
   { id: 'calculator', label: { en: 'Calculator', zh: '计算器', 'zh-hant': '計算器' } },
   { id: 'calendar', label: { en: 'Calendar lookup', zh: '日历查询', 'zh-hant': '行事曆查詢' } },
@@ -157,6 +159,32 @@ function App() {
   const chatWindowRef = useRef<HTMLDivElement | null>(null)
 
   const actionBadges = t.badges
+
+  const sendMessageToBackend = async (payload: {
+    model: string
+    enable_network_search: boolean
+    enable_tools: boolean
+    message: string
+  }) => {
+    try {
+      const response = await fetch(BACKEND_CHAT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.debug('Chat payload acknowledged by backend:', data)
+    } catch (error) {
+      console.error('Unable to send chat payload to backend:', error)
+    }
+  }
 
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return
@@ -200,6 +228,13 @@ Key takeaways: ${userMessage}`
     setMessages((prev) => [...prev, newMessage])
     const prompt = input.trim()
     setInput('')
+
+    void sendMessageToBackend({
+      model: selectedModel,
+      enable_network_search: enableWebSearch,
+      enable_tools: enableTools,
+      message: prompt,
+    })
 
     const response = await simulateAgent(prompt)
     setTimeout(() => {
