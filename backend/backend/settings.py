@@ -1,6 +1,7 @@
 """Django settings for backend project."""
 
 from pathlib import Path
+from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -17,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'content',
 ]
@@ -24,6 +26,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -86,5 +89,15 @@ STATICFILES_DIRS = [BASE_DIR.parent / "frontend" / "dist"]
 VITE_DEV_SERVER = "http://47.242.1.178:12356"
 VITE_ENTRYPOINT = "src/main.tsx"
 VITE_MANIFEST_PATH = BASE_DIR.parent / "frontend" / "dist" / "manifest.json"
+
+CORS_ALLOWED_ORIGINS: list[str] = []
+CSRF_TRUSTED_ORIGINS: list[str] = []
+
+if VITE_DEV_SERVER:
+    parsed_vite = urlparse(VITE_DEV_SERVER)
+    if parsed_vite.scheme and parsed_vite.netloc:
+        vite_origin = f"{parsed_vite.scheme}://{parsed_vite.netloc}"
+        CORS_ALLOWED_ORIGINS.append(vite_origin)
+        CSRF_TRUSTED_ORIGINS.append(vite_origin)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
