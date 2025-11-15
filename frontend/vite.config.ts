@@ -13,7 +13,10 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
-    origin: 'http://192.168.50.20:5173',  // 让 Django 模板能正确引用
+    origin: 'http://47.242.1.178:12356',  // 让 Django 模板能正确引用
+    cors: {
+      origin: 'http://47.242.1.178:12355' // 明确允许 Django 服务器的公网地址
+    }
   },
 
   // ✅ 构建输出给 Django 使用
