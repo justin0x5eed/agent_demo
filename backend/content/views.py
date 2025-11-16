@@ -17,10 +17,6 @@ def receive_message(request):
             "gemma3": "gemma3:27b",
             "gpt-oss": "gpt-oss:20b",
     }
-    
-    
-    
-
 
     data = request.data
     if not data:
@@ -35,8 +31,6 @@ def receive_message(request):
 #    answer = llm.invoke(question)
 
     return Response({"status": "received", "data": [model_name, question]})
-
-
 
 def index(request):
     """Render the simple homepage."""
