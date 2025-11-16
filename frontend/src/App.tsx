@@ -134,6 +134,22 @@ type Message = {
   annotations?: string[]
 }
 
+const formatBackendResponse = (data: unknown): string => {
+  if (data === null || typeof data === 'undefined') {
+    return 'No response received from backend.'
+  }
+
+  if (typeof data === 'object') {
+    try {
+      return JSON.stringify(data, null, 2)
+    } catch (error) {
+      console.warn('Failed to stringify backend payload', error)
+    }
+  }
+
+  return String(data)
+}
+
 const tools: { id: string; label: Record<Language, string> }[] = [
   { id: 'calculator', label: { en: 'Calculator', zh: '计算器', 'zh-hant': '計算器' } },
   { id: 'calendar', label: { en: 'Calendar lookup', zh: '日历查询', 'zh-hant': '行事曆查詢' } },
@@ -239,7 +255,7 @@ Key takeaways: ${userMessage}`
 
     try {
       const csrfToken = getCsrfToken()
-      await fetch('/api/message/', {
+      const response = await fetch('/api/message/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -247,15 +263,29 @@ Key takeaways: ${userMessage}`
         },
         body: JSON.stringify(payload),
       })
-    } catch (error) {
-      console.error('Failed to notify backend about the new message', error)
-    }
 
-    const response = await simulateAgent(prompt)
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { role: 'assistant', ...response }])
+      if (!response.ok) {
+        throw new Error(`Backend responded with status ${response.status}`)
+      }
+
+      let backendPayload: unknown = null
+      try {
+        backendPayload = await response.json()
+      } catch (error) {
+        console.warn('Failed to parse backend JSON response', error)
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: formatBackendResponse(backendPayload) },
+      ])
+    } catch (error) {
+      console.error('Failed to fetch backend response, falling back to simulation', error)
+      const fallbackResponse = await simulateAgent(prompt)
+      setMessages((prev) => [...prev, { role: 'assistant', ...fallbackResponse }])
+    } finally {
       setPending(false)
-    }, 450)
+    }
   }
 
   const handleClear = () => {
