@@ -215,7 +215,7 @@ Key takeaways: ${userMessage}`
 
     try {
       const csrfToken = getCsrfToken()
-      await fetch('http://47.242.1.178:12355', {
+      await fetch('http://47.242.1.178:12355/message/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
