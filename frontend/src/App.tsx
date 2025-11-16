@@ -273,9 +273,9 @@ Key takeaways: ${userMessage}`
   }, [messages, pending])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-4 text-base-content md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex justify-end">
+        <div className="mb-4 flex justify-end">
           <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
             <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
               {t.language}
@@ -302,12 +302,12 @@ Key takeaways: ${userMessage}`
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-stretch">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
           <section
             ref={leftPanelRef}
             className="card flex min-h-0 flex-1 flex-col border border-base-300 bg-base-100 shadow-xl"
           >
-            <div className="card-body flex h-full min-h-0 flex-col">
+            <div className="card-body flex h-full min-h-0 flex-col gap-4">
               <header>
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">
                   {t.title}
@@ -316,8 +316,8 @@ Key takeaways: ${userMessage}`
                 <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
               </header>
 
-              <div className="space-y-6">
-                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
                   <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
                   <p className="mb-4 mt-2 text-sm opacity-70">{t.modelDescription}</p>
                   <label className="label" htmlFor="model-select">
@@ -337,7 +337,7 @@ Key takeaways: ${userMessage}`
                   </select>
                 </div>
 
-                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
                   <p className="text-base font-semibold text-primary">
                     {t.knowledgeBaseTitle}
                   </p>
@@ -358,7 +358,7 @@ Key takeaways: ${userMessage}`
                     />
                     <p className="mt-2 text-xs text-base-content/60">{t.supportedFormats}</p>
                     {documents.length > 0 && (
-                      <ul className="mt-3 space-y-1 rounded-box bg-base-200 p-3 text-sm">
+                      <ul className="mt-2 space-y-1 rounded-box bg-base-200 p-3 text-sm">
                         {documents.map((file) => (
                           <li key={file.name} className="flex items-center justify-between">
                             <span>{file.name}</span>
@@ -370,7 +370,7 @@ Key takeaways: ${userMessage}`
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
                   <p className="text-base font-semibold text-primary">
                     {t.webSearchTitle}
                   </p>
@@ -386,7 +386,7 @@ Key takeaways: ${userMessage}`
                   </label>
                 </div>
 
-                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                <div className="rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
                   <p className="text-base font-semibold text-primary">
                     {t.toolsTitle}
                   </p>
@@ -400,7 +400,7 @@ Key takeaways: ${userMessage}`
                     />
                     <span className="label-text font-semibold">{t.tools}</span>
                   </label>
-                  <div className="divider my-3" />
+                  <div className="divider my-2" />
                   <p className="text-sm font-semibold">{t.chooseTools}</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {tools.map((tool) => (
@@ -432,10 +432,10 @@ Key takeaways: ${userMessage}`
               </button>
             </header>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-3">
               <div
                 ref={chatWindowRef}
-                className="chat-window flex-1 min-h-0 overflow-y-auto rounded-box border border-base-200 p-4"
+                className="chat-window flex-1 min-h-0 overflow-y-auto rounded-box border border-base-200 p-3"
               >
                 {messages.map((message, index) => (
                   <div key={index} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
@@ -472,7 +472,7 @@ Key takeaways: ${userMessage}`
                   onChange={(event) => setInput(event.target.value)}
                 />
               </label>
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-2">
                 <button className="btn btn-outline" onClick={handleClear}>
                   {t.clear}
                 </button>
