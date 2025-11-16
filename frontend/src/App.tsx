@@ -13,6 +13,9 @@ const translations = {
     uploadLabel: 'RAG documents',
     uploadHint: 'Drag & drop files or click to select',
     uploaded: 'uploaded',
+    uploading: 'Uploading...',
+    uploadSuccess: 'Files uploaded successfully.',
+    uploadError: 'Upload failed. Please try again.',
     knowledgeBaseTitle: 'Knowledge base',
     knowledgeBaseDescription: 'Keep your domain files close for grounded answers.',
     supportedFormats: 'Supported formats: txt, doc',
@@ -52,6 +55,9 @@ const translations = {
     uploadLabel: 'RAG 文档',
     uploadHint: '拖拽文件或点击选择',
     uploaded: '已上传',
+    uploading: '正在上传...',
+    uploadSuccess: '文件上传成功。',
+    uploadError: '上传失败，请重试。',
     knowledgeBaseTitle: '知识库',
     knowledgeBaseDescription: '上传业务文档，回答更有依据。',
     supportedFormats: '支持 txt、doc 格式',
@@ -91,6 +97,9 @@ const translations = {
     uploadLabel: 'RAG 文件',
     uploadHint: '拖曳檔案或點擊選擇',
     uploaded: '已上傳',
+    uploading: '正在上傳...',
+    uploadSuccess: '檔案已成功上傳。',
+    uploadError: '上傳失敗，請再試一次。',
     knowledgeBaseTitle: '知識庫',
     knowledgeBaseDescription: '上傳領域文件，讓答案更有依據。',
     supportedFormats: '支援 txt、doc 格式',
@@ -191,6 +200,10 @@ function App() {
   const [language, setLanguage] = useState<Language>('zh')
   const t = translations[language]
   const [documents, setDocuments] = useState<File[]>([])
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>(
+    'idle',
+  )
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [enableWebSearch, setEnableWebSearch] = useState(true)
   const [enableTools, setEnableTools] = useState(true)
   const [selectedModel, setSelectedModel] = useState(() => modelOptions[0]?.id ?? '')
@@ -203,9 +216,50 @@ function App() {
 
   const actionBadges = t.badges
 
-  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files) return
-    setDocuments(Array.from(event.target.files))
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.length) return
+
+    const selectedFiles = Array.from(event.target.files)
+    setDocuments(selectedFiles)
+    setUploadStatus('uploading')
+    setUploadError(null)
+
+    const csrfToken = getCsrfToken()
+
+    try {
+      await Promise.all(
+        selectedFiles.map(async (file) => {
+          const formData = new FormData()
+          formData.append('file', file)
+
+          const response = await fetch('/api/upload/', {
+            method: 'POST',
+            headers: csrfToken ? { 'X-CSRFToken': csrfToken } : undefined,
+            body: formData,
+          })
+
+          if (!response.ok) {
+            let detail: string | undefined
+            try {
+              const payload = await response.json()
+              if (payload && typeof payload === 'object' && 'detail' in payload) {
+                detail = String(payload.detail)
+              }
+            } catch (error) {
+              console.warn('Failed to parse upload error response', error)
+            }
+            throw new Error(detail ?? `Upload failed with status ${response.status}`)
+          }
+        }),
+      )
+      setUploadStatus('success')
+    } catch (error) {
+      console.error('Failed to upload document(s)', error)
+      setUploadStatus('error')
+      setUploadError(error instanceof Error ? error.message : String(error))
+    } finally {
+      event.target.value = ''
+    }
   }
 
   const simulateAgent = async (userMessage: string) => {
@@ -411,6 +465,18 @@ Key takeaways: ${userMessage}`
                       onChange={handleUpload}
                     />
                     <p className="mt-2 text-xs text-base-content/60">{t.supportedFormats}</p>
+                    {uploadStatus === 'uploading' && (
+                      <p className="mt-2 text-xs text-info">{t.uploading}</p>
+                    )}
+                    {uploadStatus === 'success' && (
+                      <p className="mt-2 text-xs text-success">{t.uploadSuccess}</p>
+                    )}
+                    {uploadStatus === 'error' && (
+                      <p className="mt-2 text-xs text-error">
+                        {t.uploadError}
+                        {uploadError ? ` (${uploadError})` : null}
+                      </p>
+                    )}
                     {documents.length > 0 && (
                       <ul className="mt-2 space-y-1 rounded-box bg-base-200 p-3 text-sm">
                         {documents.map((file) => (
