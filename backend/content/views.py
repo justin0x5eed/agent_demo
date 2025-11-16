@@ -17,10 +17,6 @@ def receive_message(request):
             "gemma3": "gemma3:27b",
             "gpt-oss": "gpt-oss:20b",
     }
-    
-    
-    
-
 
     data = request.data
     if not data:
@@ -35,6 +31,21 @@ def receive_message(request):
 #    answer = llm.invoke(question)
 
     return Response({"status": "received", "data": [model_name, question]})
+
+
+
+
+@api_view(["POST"])
+def receive_message(request):
+    """Receive a payload from the frontend and print it."""
+
+    data = request.data
+    if not data:
+        return Response({"detail": "No data provided."}, status=400)
+
+    print(f"Frontend payload: {data}")
+
+    return Response({"status": "received", "data": data})
 
 
 
