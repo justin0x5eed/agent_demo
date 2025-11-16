@@ -32,23 +32,6 @@ def receive_message(request):
 
     return Response({"status": "received", "data": [model_name, question]})
 
-
-
-
-@api_view(["POST"])
-def receive_message(request):
-    """Receive a payload from the frontend and print it."""
-
-    data = request.data
-    if not data:
-        return Response({"detail": "No data provided."}, status=400)
-
-    print(f"Frontend payload: {data}")
-
-    return Response({"status": "received", "data": data})
-
-
-
 def index(request):
     """Render the simple homepage."""
 
