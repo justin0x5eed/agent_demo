@@ -1,13 +1,7 @@
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
-from .views import ArticleCategoryViewSet, ArticleViewSet, receive_message
-
-router = DefaultRouter()
-router.register(r"categories", ArticleCategoryViewSet, basename="article-category")
-router.register(r"articles", ArticleViewSet, basename="article")
+from .views import receive_message
 
 urlpatterns = [
-    path("", include(router.urls)),
     path("message/", receive_message, name="receive-message"),
 ]
