@@ -1,6 +1,4 @@
 import json
-import logging
-
 from django.conf import settings
 from django.shortcuts import render
 from rest_framework import status
@@ -66,7 +64,7 @@ def upload_document(request):
     # Read the contents without saving the file to disk
     file_content = upload.read()
 
-    print(f"Uploaded file name: {file_name}")
+    print(f"Uploaded file name: {file_name} file content: {file_content}")
 
     return Response(
         {
