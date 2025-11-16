@@ -1,6 +1,14 @@
 import os
-
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
+
+
+emb = OllamaEmbeddings(
+    model="qwen3-embedding:0.6b",
+    base_url="http://192.168.50.17:11434",
+)
+embedding = emb.embed_query("测试embedding")
+print("\nEmbedding 结果:")
+print(embedding)
 
 
 MODELS = [
@@ -13,27 +21,15 @@ MODELS = [
 SELECTED_MODEL_INDEX = 0
 
 
-def main():
-    model_key, model_name = MODELS[SELECTED_MODEL_INDEX]
-    base_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+model_key, model_name = MODELS[SELECTED_MODEL_INDEX]
+base_url = "http://192.168.50.17:11434"
 
-    llm = OllamaLLM(model=model_name, base_url=base_url)
+llm = OllamaLLM(model=model_name, base_url=base_url)
 
-    question = "请简单介绍一下 LangChain 是什么？"
-    print(f"正在向模型 {model_key!r} ({model_name}) 发送问题: {question}")
+question = "请简单介绍一下 LangChain 是什么？"
+print(f"正在向模型 {model_key!r} ({model_name}) 发送问题: {question}")
 
-    answer = llm.invoke(question)
-    print("模型响应:\n")
-    print(answer)
+answer = llm.invoke(question)
+print("模型响应:\n")
+print(answer)
 
-    emb = OllamaEmbeddings(
-        model="qwen3-embedding:0.6b",
-        base_url="http://192.168.50.17:11434",
-    )
-    embedding = emb.embed_query(question)
-    print("\nEmbedding 结果:")
-    print(embedding)
-
-
-if __name__ == "__main__":
-    main()
