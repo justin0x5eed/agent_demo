@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
+const getCsrfToken = () => {
+  if (typeof document === 'undefined') return ''
+  return document.querySelector("meta[name='csrf-token']")?.getAttribute('content') ?? ''
+}
+
 const translations = {
   en: {
     title: 'Agentic RAG Demo',
@@ -209,9 +214,13 @@ Key takeaways: ${userMessage}`
     }
 
     try {
+      const csrfToken = getCsrfToken()
       await fetch('http://47.242.1.178:12355', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        },
         body: JSON.stringify(payload),
       })
     } catch (error) {
