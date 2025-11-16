@@ -4,6 +4,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from langchain_community.tools import DuckDuckGoSearchRun
 
 MODELS = {
     "qwen3": "qwen3:30b",
@@ -17,7 +18,6 @@ MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024  # 1 MB
 
 @api_view(["POST"])
 def receive_message(request):
-    """Receive a payload from the frontend and print it."""
 
     base_url = "http://192.168.50.17:11434"
 
@@ -32,8 +32,11 @@ def receive_message(request):
 
     print(f"Frontend payload: {data}")
 #    answer = llm.invoke(question)
+    tool = DuckDuckGoSearchRun()
 
-    return Response({"status": "received", "data": [model_name, question]})
+    results = tool.run(question)
+
+    return Response(results)
 
 
 @api_view(["POST"])
@@ -62,7 +65,9 @@ def upload_document(request):
         )
 
     # Read the contents without saving the file to disk
-    file_content = upload.read()
+    file_bytes = upload.read()
+    file_content = file_bytes.decode("utf-8")
+
 
     print(f"Uploaded file name: {file_name} file content: {file_content}")
 
