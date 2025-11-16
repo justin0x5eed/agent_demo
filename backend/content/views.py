@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.conf import settings
@@ -5,18 +6,18 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+MODELS = {
+    "qwen3": "qwen3:30b",
+    "gemma3": "gemma3:27b",
+    "gpt-oss": "gpt-oss:20b",
+}
+
 
 @api_view(["POST"])
 def receive_message(request):
     """Receive a payload from the frontend and print it."""
 
     base_url = "http://192.168.50.17:11434"
-
-    MODELS = {
-            "qwen3": "qwen3:30b",
-            "gemma3": "gemma3:27b",
-            "gpt-oss": "gpt-oss:20b",
-    }
 
     data = request.data
     if not data:
@@ -37,6 +38,7 @@ def index(request):
 
     context = {
         "debug": settings.DEBUG,
+        "models_json": json.dumps(MODELS),
     }
 
     return render(request, "index.html", context)

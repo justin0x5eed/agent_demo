@@ -141,19 +141,43 @@ const tools: { id: string; label: Record<Language, string> }[] = [
   { id: 'weather', label: { en: 'Weather API', zh: '天气 API', 'zh-hant': '天氣 API' } },
 ]
 
-const modelOptions: { id: string; label: Record<Language, string> }[] = [
-  { id: 'qwen3', label: { en: 'Qwen 3', zh: 'Qwen 3', 'zh-hant': 'Qwen 3' } },
-  { id: 'gemma3', label: { en: 'Gemma 3', zh: 'Gemma 3', 'zh-hant': 'Gemma 3' } },
-  { id: 'gpt-oss', label: { en: 'GPT-OSS', zh: 'GPT-OSS', 'zh-hant': 'GPT-OSS' } },
-]
+const modelLabels: Record<string, string> = {
+  qwen3: 'Qwen 3',
+  gemma3: 'Gemma 3',
+  'gpt-oss': 'GPT-OSS',
+}
+
+const readBackendModels = (): Record<string, string> => {
+  if (typeof document === 'undefined') return {}
+
+  const root = document.getElementById('vite_root')
+  if (!root) return {}
+
+  const raw = root.getAttribute('data-models')
+  if (!raw) return {}
+
+  try {
+    return JSON.parse(raw)
+  } catch (error) {
+    console.warn('Failed to parse backend models data attribute', error)
+    return {}
+  }
+}
 
 function App() {
+  const backendModels = readBackendModels()
+  const availableModelIds = Object.keys(backendModels)
+  const modelOptions: { id: string; label: string }[] =
+    (availableModelIds.length > 0 ? availableModelIds : Object.keys(modelLabels)).map((id) => ({
+      id,
+      label: modelLabels[id] ?? id,
+    }))
   const [language, setLanguage] = useState<Language>('zh')
   const t = translations[language]
   const [documents, setDocuments] = useState<File[]>([])
   const [enableWebSearch, setEnableWebSearch] = useState(true)
   const [enableTools, setEnableTools] = useState(true)
-  const [selectedModel, setSelectedModel] = useState(modelOptions[0].id)
+  const [selectedModel, setSelectedModel] = useState(() => modelOptions[0]?.id ?? '')
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: t.welcome }])
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
@@ -183,7 +207,7 @@ function App() {
       : t.idle
 
     const currentModelLabel =
-      modelOptions.find((option) => option.id === selectedModel)?.label[language] ?? selectedModel
+      modelOptions.find((option) => option.id === selectedModel)?.label ?? selectedModel
 
     const answer =
       language === 'en'
@@ -331,7 +355,7 @@ Key takeaways: ${userMessage}`
                   >
                     {modelOptions.map((option) => (
                       <option key={option.id} value={option.id}>
-                        {option.label[language]}
+                        {option.label}
                       </option>
                     ))}
                   </select>
