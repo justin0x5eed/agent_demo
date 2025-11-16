@@ -24,21 +24,18 @@ class ArticleViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
     serializer_class = ArticleSerializer
 
 
-logger = logging.getLogger(__name__)
-
-
 @api_view(["POST"])
 def receive_message(request):
-    """Receive a message from the frontend and log it."""
+    """Receive a payload from the frontend and print it."""
 
-    message = request.data.get("message")
-    if not message:
-        return Response({"detail": "`message` is required."}, status=400)
+    data = request.data
+    if not data:
+        return Response({"detail": "No data provided."}, status=400)
 
-    logger.info("Received message from frontend: %s", message)
-    print(f"Frontend message: {message}")
+    print(f"Frontend payload: {data}")
 
-    return Response({"status": "received", "message": message})
+    return Response({"status": "received", "data": data})
+
 
 
 def index(request):
