@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.shortcuts import render
 from rest_framework import mixins, viewsets
@@ -21,6 +23,7 @@ class ArticleViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
     queryset = Article.objects.select_related("category", "owner")
     serializer_class = ArticleSerializer
 
+
 @api_view(["POST"])
 def receive_message(request):
     """Receive a payload from the frontend and print it."""
@@ -32,6 +35,7 @@ def receive_message(request):
     print(f"Frontend payload: {data}")
 
     return Response({"status": "received", "data": data})
+
 
 
 def index(request):
