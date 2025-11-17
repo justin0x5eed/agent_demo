@@ -224,14 +224,18 @@ def receive_message(request):
 
     if formatted_chunks:
         prompt_context = "\n\n".join(formatted_chunks)
+        prompt = (
+            "You are a helpful assistant. Use the provided context to answer the "
+            "question. If the context does not contain the answer, say you don't know.\n"
+            f"Context:\n{prompt_context}\n\nQuestion: {question}\nAnswer:"
+        )
     else:
-        prompt_context = ""
-
-    prompt = (
-        "You are a helpful assistant. Use the provided context to answer the "
-        "question. If the context does not contain the answer, say you don't know.\n"
-        f"Context:\n{prompt_context}\n\nQuestion: {question}\nAnswer:"
-    )
+        prompt = (
+            "You are a helpful assistant. There is no knowledge base context "
+            "available, so rely on your general reasoning or tools to answer the "
+            "question as best as you can.\n"
+            f"Question: {question}\nAnswer:"
+        )
 
     print(f"Frontend payload: {data}")
     answer = llm.invoke(prompt)
@@ -239,7 +243,11 @@ def receive_message(request):
 
     _ = tool.run(question)
 
-    response_payload = {"prompt": prompt, "answer": answer}
+    response_payload = {
+        "prompt": prompt,
+        "answer": answer,
+        "knowledge_base_hits": len(formatted_chunks),
+    }
     if retrieved_docs:
         response_payload["retrieved_chunks"] = [
             {"source": doc.metadata.get("source"), "content": doc.page_content}
