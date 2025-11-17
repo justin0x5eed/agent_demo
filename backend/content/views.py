@@ -172,6 +172,9 @@ def receive_message(request):
     redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
     chunked_documents = []
     provided_chunks = data.get("chunked_documents") or []
+    print(data)
+    print("0000000000000000000000000000000")
+    print(provided_chunks)
     for chunk in provided_chunks:
         content = (chunk or {}).get("content")
         if not content:
@@ -230,7 +233,7 @@ def receive_message(request):
 
     _ = tool.run(question)
 
-    response_payload = {"answer": answer}
+    response_payload = {"prompt": prompt, "answer": answer}
     if retrieved_docs:
         response_payload["retrieved_chunks"] = [
             {"source": doc.metadata.get("source"), "content": doc.page_content}
