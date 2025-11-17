@@ -236,6 +236,16 @@ def receive_message(request):
             doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
         ]
 
+    unique_docs = []
+    seen = set()
+    for doc in retrieved_docs:
+        key = (doc.metadata.get("source"), doc.page_content)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_docs.append(doc)
+    retrieved_docs = unique_docs
+
     formatted_chunks = []
     for doc in retrieved_docs:
         source = doc.metadata.get("source", "unknown")
