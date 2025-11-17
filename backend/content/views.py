@@ -189,12 +189,13 @@ def upload_document(request):
         )
 
     try:
-        metadata_schema = {
-            "source": {
+        metadata_schema = [
+            {
+                "name": "source",
                 "type": "TEXT",
                 "WEIGHT": 1.0,
             }
-        }
+        ]
 
         RedisVectorStore.from_documents(
             documents=chunked_documents,
