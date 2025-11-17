@@ -5,7 +5,7 @@ import tempfile
 import redis
 from django.conf import settings
 from django.shortcuts import render
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_ollama import OllamaEmbeddings
