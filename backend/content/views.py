@@ -81,7 +81,12 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
         return
 
     filter_expression = RedisFilter.tag(SOURCE_TAG_FIELD) == file_name
-    query_str = str(filter_expression)
+    # ``RedisFilter`` renders values using the Redis TAG query syntax. Certain
+    # characters (e.g. ``.``) have special meaning in that syntax, so we build a
+    # parameterized query instead of embedding the raw filename directly.
+    # Dialect 2 adds support for parameterized ``$name`` placeholders.
+    query_str = f"(@{SOURCE_TAG_FIELD}:$tag_val)"
+    base_query = Query(query_str).dialect(2)
 
     batch_size = 500
     offset = 0
@@ -89,8 +94,9 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
 
     while True:
         try:
-            query = Query(query_str).paging(offset, batch_size)
-            result = client.ft(REDIS_INDEX_NAME).search(query)
+            query = base_query.paging(offset, batch_size)
+            params = {"tag_val": file_name}
+            result = client.ft(REDIS_INDEX_NAME).search(query, query_params=params)
         except Exception as exc:  # pragma: no cover - redis runtime guard
             print(f"Unable to query Redis for cleanup: {exc}")
             break
@@ -106,11 +112,13 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
             break
 
     if doc_ids:
+        print(f"Found {len(doc_ids)} stale documents for '{file_name}'. Deleting...")
         for doc_id in doc_ids:
             try:
                 search_client.delete_document(doc_id, delete_actual_document=True)
             except Exception as exc:  # pragma: no cover - redis runtime guard
                 print(f"Failed to delete stale Redis document {doc_id}: {exc}")
+        print(f"Deletion complete for '{file_name}'.")
 
 
 @api_view(["POST"])
