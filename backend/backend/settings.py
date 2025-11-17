@@ -1,5 +1,6 @@
 """Django settings for backend project."""
 
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -88,3 +89,5 @@ VITE_ENTRYPOINT = "src/main.tsx"
 VITE_MANIFEST_PATH = BASE_DIR.parent / "frontend" / "dist" / "manifest.json"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
