@@ -193,7 +193,11 @@ def upload_document(request):
             {
                 "name": "source",
                 "type": "TEXT",
-                "WEIGHT": 1.0,
+                # ``FieldFactory`` expects standard lowercase keyword arguments.
+                # Using the uppercase Redis constant (``WEIGHT``) raises
+                # ``unexpected keyword`` errors when the schema is parsed, so we
+                # provide the correct ``weight`` parameter instead.
+                "weight": 1.0,
             }
         ]
 
