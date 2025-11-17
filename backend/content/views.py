@@ -9,7 +9,6 @@ from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
 from langchain_community.vectorstores.redis import RedisFilter
-from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -170,30 +169,16 @@ def receive_message(request):
     )
 
     redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
-    chunked_documents = []
-    provided_chunks = data.get("chunked_documents") or []
-    print(data)
-    print("0000000000000000000000000000000")
-    print(provided_chunks)
-    for chunk in provided_chunks:
-        content = (chunk or {}).get("content")
-        if not content:
-            continue
-        metadata = (chunk or {}).get("metadata") or {}
-        chunked_documents.append(Document(page_content=content, metadata=metadata))
-
-    if chunked_documents:
-        vector_store = RedisVectorStore.from_documents(
-            documents=chunked_documents,
-            embedding=embedder,
-            redis_url=redis_url,
-            index_name=REDIS_INDEX_NAME,
-        )
-    else:
+    try:
         vector_store = RedisVectorStore.from_existing_index(
             embedding=embedder,
             redis_url=redis_url,
             index_name=REDIS_INDEX_NAME,
+        )
+    except Exception as exc:  # pragma: no cover - vector store runtime guard
+        return Response(
+            {"detail": f"Unable to connect to Redis vector index: {exc}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
     file_names = [name for name in (data.get("file") or []) if name]
