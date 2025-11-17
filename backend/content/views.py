@@ -9,6 +9,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
+from langchain_redis.index import FieldType
 from langchain_community.vectorstores.redis import RedisFilter
 from langchain_ollama import OllamaEmbeddings
 from redis.commands.search.query import Query
@@ -192,7 +193,7 @@ def upload_document(request):
         metadata_schema = [
             {
                 "name": "source",
-                "type": "TEXT",
+                "type": FieldType.TEXT.value,
                 # ``RedisVectorStore`` creates a ``FieldFactory`` internally and
                 # forwards this dictionary as keyword arguments. Older versions
                 # of the library only accept uppercase Redis keywords (e.g.
