@@ -193,11 +193,13 @@ def upload_document(request):
             {
                 "name": "source",
                 "type": "TEXT",
-                # ``FieldFactory`` expects standard lowercase keyword arguments.
-                # Using the uppercase Redis constant (``WEIGHT``) raises
-                # ``unexpected keyword`` errors when the schema is parsed, so we
-                # provide the correct ``weight`` parameter instead.
-                "weight": 1.0,
+                # ``RedisVectorStore`` creates a ``FieldFactory`` internally and
+                # forwards this dictionary as keyword arguments. Older versions
+                # of the library only accept uppercase Redis keywords (e.g.
+                # ``WEIGHT``), while the default ``weight`` parameter is not
+                # recognised, resulting in ``unexpected keyword`` errors. We
+                # therefore omit the optional weight override and rely on the
+                # default value to keep compatibility across versions.
             }
         ]
 
