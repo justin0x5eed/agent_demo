@@ -2,12 +2,13 @@ import json
 import os
 import tempfile
 
-import redis
 from django.conf import settings
 from django.shortcuts import render
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_community.vectorstores import Redis as RedisVectorStore
+from langchain_community.vectorstores.redis import RedisFilter
 from langchain_ollama import OllamaEmbeddings
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -22,6 +23,7 @@ MODELS = {
 
 ALLOWED_FILE_TYPES = {"txt", "doc", "docx"}
 MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024  # 1 MB
+REDIS_INDEX_NAME = "idx_chunks"
 
 
 def index(request):
@@ -109,29 +111,32 @@ def upload_document(request):
         base_url="http://192.168.50.17:11434",
     )
 
-    chunk_texts = [doc.page_content for doc in chunked_documents]
-    embeddings = embedder.embed_documents(chunk_texts) if chunk_texts else []
+    if not chunked_documents:
+        return Response(
+            {
+                "status": "processed",
+                "file_name": file_name,
+                "file_size": upload.size,
+                "content_length": len(file_content),
+                "chunk_count": 0,
+            },
+            status=status.HTTP_200_OK,
+        )
 
-    chunks_with_embeddings = [
-        {
-            "text": doc.page_content,
-            "metadata": doc.metadata,
-            "embedding": vector,
-        }
-        for doc, vector in zip(chunked_documents, embeddings)
-    ]
-
-    redis_payload = {
-        "file_name": file_name,
-        "embedding_model": "qwen3-embedding:0.6b",
-        "chunks": chunks_with_embeddings,
-    }
-
-    redis_client = redis.Redis.from_url(
-        getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+    vector_store = RedisVectorStore(
+        redis_url=redis_url,
+        index_name=REDIS_INDEX_NAME,
+        embedding=embedder,
     )
-    # Store the payload in Redis for one hour to avoid stale data lingering
-    redis_client.set(file_name, json.dumps(redis_payload), ex=60 * 60)
+
+    try:
+        vector_store.add_documents(chunked_documents)
+    except Exception as exc:  # pragma: no cover - redis/vector store runtime guard
+        return Response(
+            {"detail": f"Unable to store document chunks in Redis: {exc}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return Response(
         {
@@ -159,10 +164,60 @@ def receive_message(request):
     
     llm = OllamaLLM(model=model_name, base_url=base_url)
 
+    embedder = OllamaEmbeddings(
+        model="qwen3-embedding:0.6b",
+        base_url=base_url,
+    )
+
+    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+    vector_store = RedisVectorStore(
+        redis_url=redis_url,
+        index_name=REDIS_INDEX_NAME,
+        embedding=embedder,
+    )
+
+    file_names = [name for name in (data.get("file") or []) if name]
+    metadata_filter = None
+    if file_names:
+        expressions = [RedisFilter.text("source") == name for name in file_names]
+        metadata_filter = expressions[0]
+        for expression in expressions[1:]:
+            metadata_filter = metadata_filter | expression
+
+    retrieved_docs = []
+    try:
+        retrieved_docs = vector_store.similarity_search(
+            question, k=3, filter=metadata_filter
+        )
+    except Exception as exc:  # pragma: no cover - vector store runtime guard
+        print(f"Vector store lookup failed: {exc}")
+
+    rag_context = ""
+    if retrieved_docs:
+        formatted_chunks = [
+            f"Source: {doc.metadata.get('source', 'unknown')}\n{doc.page_content}"
+            for doc in retrieved_docs
+        ]
+        rag_context = "\n\n".join(formatted_chunks)
+        prompt = (
+            "You are a helpful assistant. Use the provided context to answer the "
+            "question. If the context does not contain the answer, say you don't know.\n"
+            f"Context:\n{rag_context}\n\nQuestion: {question}\nAnswer:"
+        )
+    else:
+        prompt = question
+
     print(f"Frontend payload: {data}")
-    answer = llm.invoke(question)
+    answer = llm.invoke(prompt)
     tool = DuckDuckGoSearchRun()
 
-    results = tool.run(question)
+    _ = tool.run(question)
 
-    return Response(answer)
+    response_payload = {"answer": answer}
+    if retrieved_docs:
+        response_payload["retrieved_chunks"] = [
+            {"source": doc.metadata.get("source"), "content": doc.page_content}
+            for doc in retrieved_docs
+        ]
+
+    return Response(response_payload)
