@@ -12,6 +12,7 @@ from langchain_ollama import OllamaEmbeddings
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from langchain_ollama import OllamaLLM
 
 MODELS = {
     "qwen3": "qwen3:30b",
@@ -57,15 +58,15 @@ def receive_message(request):
     model_name = MODELS[data["model"]]
     question = data["message"]
     
-#    llm = OllamaLLM(model=model_name, base_url=base_url)
+    llm = OllamaLLM(model=model_name, base_url=base_url)
 
     print(f"Frontend payload: {data}")
-#    answer = llm.invoke(question)
+    answer = llm.invoke(question)
     tool = DuckDuckGoSearchRun()
 
     results = tool.run(question)
 
-    return Response(results)
+    return Response(answer)
 
 
 @api_view(["POST"])
