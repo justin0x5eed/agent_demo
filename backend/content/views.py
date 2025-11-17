@@ -4,6 +4,7 @@ import tempfile
 
 import redis
 from django.conf import settings
+from django.http import StreamingHttpResponse
 from django.shortcuts import render
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
@@ -243,20 +244,33 @@ def receive_message(request):
         )
 
     print(f"Frontend payload: {data}")
-    answer = llm.invoke(prompt)
-    tool = DuckDuckGoSearchRun()
 
+    tool = DuckDuckGoSearchRun()
     _ = tool.run(question)
 
-    response_payload = {
+    metadata_payload = {
         "prompt": prompt,
-        "answer": answer,
         "knowledge_base_hits": len(formatted_chunks),
+        "web_search_used": bool(data.get("enableWebSearch")),
+        "tool_used": bool(data.get("enableTools")),
     }
+
     if retrieved_docs:
-        response_payload["retrieved_chunks"] = [
+        metadata_payload["retrieved_chunks"] = [
             {"source": doc.metadata.get("source"), "content": doc.page_content}
             for doc in retrieved_docs
         ]
 
-    return Response(response_payload)
+    def stream_response():
+        yield f"data: {json.dumps({'type': 'metadata', 'payload': metadata_payload})}\n\n"
+        try:
+            for chunk in llm.stream(prompt):
+                if chunk:
+                    yield f"data: {json.dumps({'type': 'token', 'token': chunk})}\n\n"
+        except Exception as exc:  # pragma: no cover - streaming guard
+            yield f"data: {json.dumps({'type': 'error', 'detail': str(exc)})}\n\n"
+        yield "data: {\"type\": \"done\"}\n\n"
+
+    response = StreamingHttpResponse(stream_response(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache"
+    return response
