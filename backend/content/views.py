@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 
+import redis
 from django.conf import settings
 from django.shortcuts import render
 from langchain_text_splitters import RecursiveCharacterTextSplitter
