@@ -305,6 +305,7 @@ Key takeaways: ${userMessage}`
       enableWebSearch,
       enableTools,
       message: prompt,
+      file: documents.length > 0 ? documents.map((doc) => doc.name) : null,
     }
 
     try {
