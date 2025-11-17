@@ -26,6 +26,8 @@ MODELS = {
 ALLOWED_FILE_TYPES = {"txt", "doc", "docx"}
 MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024  # 1 MB
 REDIS_INDEX_NAME = "idx_chunks"
+SOURCE_FIELD = "source"
+SOURCE_TAG_FIELD = "source_tag"
 
 
 def index(request):
@@ -56,7 +58,8 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
             os.unlink(tmp_path)
 
     for document in documents:
-        document.metadata["source"] = file_name
+        document.metadata[SOURCE_FIELD] = file_name
+        document.metadata[SOURCE_TAG_FIELD] = [file_name]
 
     return documents
 
@@ -77,7 +80,7 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
         # Index does not exist yet, so there are no stale documents to remove.
         return
 
-    filter_expression = RedisFilter.text("source") == file_name
+    filter_expression = RedisFilter.tag(SOURCE_TAG_FIELD) == file_name
     query_str = str(filter_expression)
 
     batch_size = 500
@@ -166,7 +169,8 @@ def upload_document(request):
         # the temporary file path produced by TextLoader (e.g. /tmp/tmpxyz),
         # which would later prevent us from filtering by the human-provided
         # filename.
-        chunk.metadata["source"] = file_name
+        chunk.metadata[SOURCE_FIELD] = file_name
+        chunk.metadata[SOURCE_TAG_FIELD] = [file_name]
 
     # ``langchain-redis`` automatically reads any values stored in the
     # ``Document.metadata`` dictionaries, so we simply rely on the metadata
@@ -273,7 +277,7 @@ def receive_message(request):
     allowed_sources = set(file_names)
     metadata_filter = None
     if file_names:
-        expressions = [RedisFilter.text("source") == name for name in file_names]
+        expressions = [RedisFilter.tag(SOURCE_TAG_FIELD) == name for name in file_names]
         metadata_filter = expressions[0]
         for expression in expressions[1:]:
             metadata_filter = metadata_filter | expression
