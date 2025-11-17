@@ -142,21 +142,32 @@ type Message = {
   content: string
   annotations?: string[]
 }
+type StreamMetadata = {
+  prompt?: string
+  knowledge_base_hits?: number
+  retrieved_chunks?: { source?: string; content?: string }[]
+  web_search_used?: boolean
+  tool_used?: boolean
+}
+type BadgeLabels = Record<'rag' | 'web' | 'tool', string>
 
-const formatBackendResponse = (data: unknown): string => {
-  if (data === null || typeof data === 'undefined') {
-    return 'No response received from backend.'
+const deriveAnnotations = (metadata: StreamMetadata | null, badges: BadgeLabels): string[] => {
+  if (!metadata) return []
+  const annotations: string[] = []
+
+  if (typeof metadata.knowledge_base_hits === 'number' && metadata.knowledge_base_hits > 0) {
+    annotations.push(badges.rag)
   }
 
-  if (typeof data === 'object') {
-    try {
-      return JSON.stringify(data, null, 2)
-    } catch (error) {
-      console.warn('Failed to stringify backend payload', error)
-    }
+  if (metadata.web_search_used) {
+    annotations.push(badges.web)
   }
 
-  return String(data)
+  if (metadata.tool_used) {
+    annotations.push(badges.tool)
+  }
+
+  return annotations
 }
 
 const tools: { id: string; label: Record<Language, string> }[] = [
@@ -214,7 +225,7 @@ function App() {
   const [panelHeight, setPanelHeight] = useState<number | null>(null)
   const chatWindowRef = useRef<HTMLDivElement | null>(null)
 
-  const actionBadges = t.badges
+  const actionBadges: BadgeLabels = t.badges
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files?.length) return
@@ -308,12 +319,15 @@ Key takeaways: ${userMessage}`
       file: documents.length > 0 ? documents.map((doc) => doc.name) : null,
     }
 
+    let assistantPlaceholderAdded = false
+
     try {
       const csrfToken = getCsrfToken()
       const response = await fetch('/api/message/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'text/event-stream',
           ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
         },
         body: JSON.stringify(payload),
@@ -323,21 +337,126 @@ Key takeaways: ${userMessage}`
         throw new Error(`Backend responded with status ${response.status}`)
       }
 
-      let backendPayload: unknown = null
-      try {
-        backendPayload = await response.json()
-      } catch (error) {
-        console.warn('Failed to parse backend JSON response', error)
+      if (!response.body) {
+        throw new Error('This browser does not support streaming responses')
       }
 
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: formatBackendResponse(backendPayload) },
-      ])
+      setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
+      assistantPlaceholderAdded = true
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let assistantContent = ''
+      let metadata: StreamMetadata | null = null
+      let annotations: string[] = []
+      let streamClosed = false
+
+      const updateAssistantMessage = (content: string, newAnnotations?: string[]) => {
+        setMessages((prev) => {
+          if (!prev.length) return prev
+          const updated = [...prev]
+          const lastIndex = updated.length - 1
+          const lastMessage = updated[lastIndex]
+          if (!lastMessage || lastMessage.role !== 'assistant') return updated
+
+          updated[lastIndex] = {
+            ...lastMessage,
+            content,
+            ...(newAnnotations && newAnnotations.length
+              ? { annotations: newAnnotations }
+              : lastMessage.annotations
+                ? { annotations: lastMessage.annotations }
+                : {}),
+          }
+
+          return updated
+        })
+      }
+
+      const updateAnnotationsFromMetadata = () => {
+        const derived = deriveAnnotations(metadata, actionBadges)
+        if (derived.length) {
+          annotations = derived
+          updateAssistantMessage(assistantContent, annotations)
+        }
+      }
+
+      const processEvent = (rawEvent: string) => {
+        const trimmed = rawEvent.trim()
+        if (!trimmed) return
+
+        const lines = trimmed.split('\n')
+        let dataPayload = ''
+        for (const line of lines) {
+          if (line.startsWith('data:')) {
+            dataPayload += line.replace(/^data:\s*/, '')
+          }
+        }
+
+        if (!dataPayload) return
+
+        const parsed = JSON.parse(dataPayload)
+        switch (parsed.type) {
+          case 'metadata':
+            metadata = (parsed.payload ?? null) as StreamMetadata | null
+            updateAnnotationsFromMetadata()
+            break
+          case 'token':
+            assistantContent += typeof parsed.token === 'string' ? parsed.token : ''
+            updateAssistantMessage(assistantContent, annotations)
+            break
+          case 'error':
+            throw new Error(parsed.detail ?? 'Streaming error from backend')
+          case 'done':
+            streamClosed = true
+            if (typeof reader.cancel === 'function') {
+              reader.cancel().catch(() => null)
+            }
+            break
+          default:
+            break
+        }
+      }
+
+      while (!streamClosed) {
+        const { done, value } = await reader.read()
+        if (done) {
+          break
+        }
+
+        buffer += decoder.decode(value, { stream: true })
+
+        let separatorIndex = buffer.indexOf('\n\n')
+        while (separatorIndex !== -1) {
+          const eventChunk = buffer.slice(0, separatorIndex)
+          buffer = buffer.slice(separatorIndex + 2)
+          processEvent(eventChunk)
+          separatorIndex = buffer.indexOf('\n\n')
+        }
+      }
+
+      buffer += decoder.decode()
+      if (buffer.trim()) {
+        processEvent(buffer)
+      }
+
+      updateAnnotationsFromMetadata()
     } catch (error) {
       console.error('Failed to fetch backend response, falling back to simulation', error)
       const fallbackResponse = await simulateAgent(prompt)
-      setMessages((prev) => [...prev, { role: 'assistant', ...fallbackResponse }])
+      setMessages((prev) => {
+        const updated = [...prev]
+        if (
+          assistantPlaceholderAdded &&
+          updated.length > 0 &&
+          updated[updated.length - 1].role === 'assistant'
+        ) {
+          updated[updated.length - 1] = { role: 'assistant', ...fallbackResponse }
+          return updated
+        }
+        return [...updated, { role: 'assistant', ...fallbackResponse }]
+      })
     } finally {
       setPending(false)
     }
