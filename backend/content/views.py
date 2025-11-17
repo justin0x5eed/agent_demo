@@ -189,11 +189,19 @@ def upload_document(request):
         )
 
     try:
+        metadata_schema = {
+            "source": {
+                "type": "TEXT",
+                "WEIGHT": 1.0,
+            }
+        }
+
         RedisVectorStore.from_documents(
             documents=chunked_documents,
             embedding=embedder,
             redis_url=redis_url,
             index_name=REDIS_INDEX_NAME,
+            metadata_schema=metadata_schema,
         )
     except Exception as exc:  # pragma: no cover - redis/vector store runtime guard
         return Response(
