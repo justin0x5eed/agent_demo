@@ -9,7 +9,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
-from langchain_redis.index import FieldType
 from langchain_community.vectorstores.redis import RedisFilter
 from langchain_ollama import OllamaEmbeddings
 from redis.commands.search.query import Query
@@ -169,6 +168,11 @@ def upload_document(request):
         # filename.
         chunk.metadata["source"] = file_name
 
+    # ``langchain-redis`` automatically reads any values stored in the
+    # ``Document.metadata`` dictionaries, so we simply rely on the metadata
+    # already written above instead of configuring an explicit Redis metadata
+    # schema.
+
     embedder = OllamaEmbeddings(
         model="qwen3-embedding:0.6b",
         base_url="http://192.168.50.17:11434",
@@ -190,26 +194,11 @@ def upload_document(request):
         )
 
     try:
-        metadata_schema = [
-            {
-                "name": "source",
-                "type": FieldType.TEXT.value,
-                # ``RedisVectorStore`` creates a ``FieldFactory`` internally and
-                # forwards this dictionary as keyword arguments. Older versions
-                # of the library only accept uppercase Redis keywords (e.g.
-                # ``WEIGHT``), while the default ``weight`` parameter is not
-                # recognised, resulting in ``unexpected keyword`` errors. We
-                # therefore omit the optional weight override and rely on the
-                # default value to keep compatibility across versions.
-            }
-        ]
-
         RedisVectorStore.from_documents(
             documents=chunked_documents,
             embedding=embedder,
             redis_url=redis_url,
             index_name=REDIS_INDEX_NAME,
-            metadata_schema=metadata_schema,
         )
     except Exception as exc:  # pragma: no cover - redis/vector store runtime guard
         return Response(
