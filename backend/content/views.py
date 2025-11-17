@@ -71,7 +71,8 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
         return
 
     try:
-        client.ft(REDIS_INDEX_NAME).info()
+        search_client = client.ft(REDIS_INDEX_NAME)
+        search_client.info()
     except Exception:
         # Index does not exist yet, so there are no stale documents to remove.
         return
@@ -102,10 +103,11 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
             break
 
     if doc_ids:
-        try:
-            client.delete(*doc_ids)
-        except Exception as exc:  # pragma: no cover - redis runtime guard
-            print(f"Failed to delete stale Redis documents: {exc}")
+        for doc_id in doc_ids:
+            try:
+                search_client.delete_document(doc_id, delete_actual_document=True)
+            except Exception as exc:  # pragma: no cover - redis runtime guard
+                print(f"Failed to delete stale Redis document {doc_id}: {exc}")
 
 
 @api_view(["POST"])
