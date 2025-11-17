@@ -7,7 +7,7 @@ from django.shortcuts import render
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
-from langchain_community.vectorstores import Redis as RedisVectorStore
+from langchain_redis import RedisVectorStore
 from langchain_community.vectorstores.redis import RedisFilter
 from langchain_ollama import OllamaEmbeddings
 from rest_framework import status
