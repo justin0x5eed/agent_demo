@@ -24,6 +24,17 @@ ALLOWED_FILE_TYPES = {"txt", "doc", "docx"}
 MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024  # 1 MB
 
 
+def index(request):
+    """Render the simple homepage."""
+
+    context = {
+        "debug": settings.DEBUG,
+        "models_json": json.dumps(MODELS),
+    }
+
+    return render(request, "index.html", context)
+
+
 def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str):
     """Persist uploaded bytes temporarily and load them with TextLoader."""
 
@@ -44,29 +55,6 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
         document.metadata["source"] = file_name
 
     return documents
-
-
-@api_view(["POST"])
-def receive_message(request):
-
-    base_url = "http://192.168.50.17:11434"
-
-    data = request.data
-    if not data:
-        return Response({"detail": "No data provided."}, status=400)
-
-    model_name = MODELS[data["model"]]
-    question = data["message"]
-    
-    llm = OllamaLLM(model=model_name, base_url=base_url)
-
-    print(f"Frontend payload: {data}")
-    answer = llm.invoke(question)
-    tool = DuckDuckGoSearchRun()
-
-    results = tool.run(question)
-
-    return Response(answer)
 
 
 @api_view(["POST"])
@@ -155,12 +143,25 @@ def upload_document(request):
         status=status.HTTP_200_OK,
     )
 
-def index(request):
-    """Render the simple homepage."""
 
-    context = {
-        "debug": settings.DEBUG,
-        "models_json": json.dumps(MODELS),
-    }
+@api_view(["POST"])
+def receive_message(request):
 
-    return render(request, "index.html", context)
+    base_url = "http://192.168.50.17:11434"
+
+    data = request.data
+    if not data:
+        return Response({"detail": "No data provided."}, status=400)
+
+    model_name = MODELS[data["model"]]
+    question = data["message"]
+    
+    llm = OllamaLLM(model=model_name, base_url=base_url)
+
+    print(f"Frontend payload: {data}")
+    answer = llm.invoke(question)
+    tool = DuckDuckGoSearchRun()
+
+    results = tool.run(question)
+
+    return Response(answer)
