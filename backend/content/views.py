@@ -4,8 +4,10 @@ import tempfile
 
 import redis
 from django.conf import settings
-from django.http import StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
@@ -170,17 +172,39 @@ def _normalize_file_names(raw_names):
     return cleaned
 
 
-@api_view(["POST"])
+@csrf_exempt
+@require_POST
 def receive_message(request):
 
     base_url = "http://192.168.50.17:11434"
 
-    data = request.data
-    if not data:
-        return Response({"detail": "No data provided."}, status=400)
+    try:
+        body = request.body.decode("utf-8")
+    except UnicodeDecodeError:
+        return JsonResponse({"detail": "Request body must be valid UTF-8."}, status=400)
 
-    model_name = MODELS[data["model"]]
-    question = data["message"]
+    data = {}
+    if body.strip():
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            return JsonResponse({"detail": "Malformed JSON payload."}, status=400)
+    elif request.POST:
+        data = request.POST.dict()
+
+    if not isinstance(data, dict) or not data:
+        return JsonResponse({"detail": "No data provided."}, status=400)
+
+    model_key = data.get("model")
+    if model_key not in MODELS:
+        return JsonResponse({"detail": "Invalid or missing model."}, status=400)
+
+    message = data.get("message")
+    if not isinstance(message, str) or not message.strip():
+        return JsonResponse({"detail": "Message is required."}, status=400)
+
+    model_name = MODELS[model_key]
+    question = message.strip()
 
     llm = OllamaLLM(model=model_name, base_url=base_url)
 
@@ -197,9 +221,9 @@ def receive_message(request):
             index_name=REDIS_INDEX_NAME,
         )
     except Exception as exc:  # pragma: no cover - vector store runtime guard
-        return Response(
+        return JsonResponse(
             {"detail": f"Unable to connect to Redis vector index: {exc}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status=500,
         )
 
     file_names = _normalize_file_names(data.get("file"))
