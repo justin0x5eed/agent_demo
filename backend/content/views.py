@@ -124,14 +124,13 @@ def upload_document(request):
         )
 
     redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
-    vector_store = RedisVectorStore(
-        redis_url=redis_url,
-        index_name=REDIS_INDEX_NAME,
-        embedding=embedder,
-    )
-
     try:
-        vector_store.add_documents(chunked_documents)
+        RedisVectorStore.from_documents(
+            documents=chunked_documents,
+            embedding=embedder,
+            redis_url=redis_url,
+            index_name=REDIS_INDEX_NAME,
+        )
     except Exception as exc:  # pragma: no cover - redis/vector store runtime guard
         return Response(
             {"detail": f"Unable to store document chunks in Redis: {exc}"},
