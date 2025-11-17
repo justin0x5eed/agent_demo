@@ -210,9 +210,11 @@ def receive_message(request):
 
     retrieved_docs = []
     try:
-        retrieved_docs = vector_store.similarity_search(
-            question, k=3, filter=metadata_filter
-        )
+        similarity_kwargs = {"k": 3}
+        if metadata_filter is not None:
+            similarity_kwargs["filter_expression"] = metadata_filter
+
+        retrieved_docs = vector_store.similarity_search(question, **similarity_kwargs)
     except Exception as exc:  # pragma: no cover - vector store runtime guard
         print(f"Vector store lookup failed: {exc}")
 
