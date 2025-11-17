@@ -228,14 +228,16 @@ def receive_message(request):
         prompt_context = "\n\n".join(formatted_chunks)
         prompt = (
             "You are a helpful assistant. Use the provided context to answer the "
-            "question. If the context does not contain the answer, say you don't know.\n"
+            "question. If the context does not contain the answer, say you don't know. "
+            "Use user asking language response. 请使用用户提问的语言进行回答。\n"
             f"Context:\n{prompt_context}\n\nQuestion: {question}\nAnswer:"
         )
     else:
         prompt = (
             "You are a helpful assistant. There is no knowledge base context "
             "available, so rely on your general reasoning or tools to answer the "
-            "question as best as you can.\n"
+            "question as best as you can. Use user asking language response. "
+            "请使用用户提问的语言进行回答。\n"
             f"Question: {question}\nAnswer:"
         )
 
