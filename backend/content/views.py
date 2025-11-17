@@ -149,6 +149,25 @@ def upload_document(request):
     )
 
 
+def _normalize_file_names(raw_names):
+    """Return a clean list of filenames from user payload."""
+
+    if not raw_names:
+        return []
+
+    if isinstance(raw_names, str):
+        raw_names = [raw_names]
+
+    cleaned = []
+    for name in raw_names:
+        if isinstance(name, str):
+            stripped = name.strip()
+            if stripped:
+                cleaned.append(stripped)
+
+    return cleaned
+
+
 @api_view(["POST"])
 def receive_message(request):
 
@@ -160,7 +179,7 @@ def receive_message(request):
 
     model_name = MODELS[data["model"]]
     question = data["message"]
-    
+
     llm = OllamaLLM(model=model_name, base_url=base_url)
 
     embedder = OllamaEmbeddings(
@@ -181,7 +200,7 @@ def receive_message(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    file_names = [name for name in (data.get("file") or []) if name]
+    file_names = _normalize_file_names(data.get("file"))
     metadata_filter = None
     if file_names:
         expressions = [RedisFilter.text("source") == name for name in file_names]
@@ -197,20 +216,22 @@ def receive_message(request):
     except Exception as exc:  # pragma: no cover - vector store runtime guard
         print(f"Vector store lookup failed: {exc}")
 
-    rag_context = ""
-    if retrieved_docs:
-        formatted_chunks = [
-            f"Source: {doc.metadata.get('source', 'unknown')}\n{doc.page_content}"
-            for doc in retrieved_docs
-        ]
-        rag_context = "\n\n".join(formatted_chunks)
-        prompt = (
-            "You are a helpful assistant. Use the provided context to answer the "
-            "question. If the context does not contain the answer, say you don't know.\n"
-            f"Context:\n{rag_context}\n\nQuestion: {question}\nAnswer:"
-        )
+    formatted_chunks = []
+    for doc in retrieved_docs:
+        source = doc.metadata.get("source", "unknown")
+        chunk = doc.page_content.strip()
+        formatted_chunks.append(f"Source: {source}\n{chunk}")
+
+    if formatted_chunks:
+        prompt_context = "\n\n".join(formatted_chunks)
     else:
-        prompt = question
+        prompt_context = ""
+
+    prompt = (
+        "You are a helpful assistant. Use the provided context to answer the "
+        "question. If the context does not contain the answer, say you don't know.\n"
+        f"Context:\n{prompt_context}\n\nQuestion: {question}\nAnswer:"
+    )
 
     print(f"Frontend payload: {data}")
     answer = llm.invoke(prompt)
