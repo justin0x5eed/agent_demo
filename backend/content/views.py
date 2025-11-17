@@ -9,7 +9,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
-from langchain_community.vectorstores.redis import RedisFilter
+from langchain_community.vectorstores.redis.filters import TokenEscaper
 from langchain_ollama import OllamaEmbeddings
 from redis.commands.search.query import Query
 from rest_framework import status
@@ -64,6 +64,22 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
     return documents
 
 
+_TAG_VALUE_ESCAPER = TokenEscaper()
+
+
+def _sanitize_tag_for_query(tag_value: str) -> str:
+    """Normalize a user-supplied tag so it matches Redis' stored format."""
+
+    if not isinstance(tag_value, str):
+        raise TypeError("Redis tag values must be strings.")
+
+    # ``RedisFilter.tag`` relies on the ``TokenEscaper`` helper to escape
+    # punctuation (``.``, ``/``, spaces, etc.) so the value can be safely used in
+    # a TAG query. Reuse the same escaper so our parameterized Query behaves the
+    # same as ``RedisFilter`` and matches the values stored by ``RedisVectorStore``.
+    return _TAG_VALUE_ESCAPER.escape(tag_value)
+
+
 def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
     """Remove any Redis entries belonging to the provided filename."""
 
@@ -80,22 +96,22 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
         # Index does not exist yet, so there are no stale documents to remove.
         return
 
-    filter_expression = RedisFilter.tag(SOURCE_TAG_FIELD) == file_name
     # ``RedisFilter`` renders values using the Redis TAG query syntax. Certain
     # characters (e.g. ``.``) have special meaning in that syntax, so we build a
     # parameterized query instead of embedding the raw filename directly.
     # Dialect 2 adds support for parameterized ``$name`` placeholders.
-    query_str = f"(@{SOURCE_TAG_FIELD}:$tag_val)"
+    query_str = f"(@{SOURCE_TAG_FIELD}:{{$tag_val}})"
     base_query = Query(query_str).dialect(2)
 
     batch_size = 500
     offset = 0
     doc_ids = []
+    sanitized_file_name = _sanitize_tag_for_query(file_name)
 
     while True:
         try:
             query = base_query.paging(offset, batch_size)
-            params = {"tag_val": file_name}
+            params = {"tag_val": sanitized_file_name}
             result = client.ft(REDIS_INDEX_NAME).search(query, query_params=params)
         except Exception as exc:  # pragma: no cover - redis runtime guard
             print(f"Unable to query Redis for cleanup: {exc}")
