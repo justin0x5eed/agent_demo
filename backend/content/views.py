@@ -11,6 +11,7 @@ from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
 from langchain_community.vectorstores.redis import RedisFilter
 from langchain_ollama import OllamaEmbeddings
+from redis.commands.search.query import Query
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -58,6 +59,53 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
         document.metadata["source"] = file_name
 
     return documents
+
+
+def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
+    """Remove any Redis entries belonging to the provided filename."""
+
+    try:
+        client = redis.from_url(redis_url)
+    except Exception as exc:  # pragma: no cover - defensive guard
+        print(f"Unable to connect to Redis for cleanup: {exc}")
+        return
+
+    try:
+        client.ft(REDIS_INDEX_NAME).info()
+    except Exception:
+        # Index does not exist yet, so there are no stale documents to remove.
+        return
+
+    filter_expression = RedisFilter.text("source") == file_name
+    query_str = str(filter_expression)
+
+    batch_size = 500
+    offset = 0
+    doc_ids = []
+
+    while True:
+        try:
+            query = Query(query_str).paging(offset, batch_size)
+            result = client.ft(REDIS_INDEX_NAME).search(query)
+        except Exception as exc:  # pragma: no cover - redis runtime guard
+            print(f"Unable to query Redis for cleanup: {exc}")
+            break
+
+        docs = getattr(result, "docs", None)
+        if not docs:
+            break
+
+        doc_ids.extend(doc.id for doc in docs)
+
+        offset += batch_size
+        if result.total <= offset:
+            break
+
+    if doc_ids:
+        try:
+            client.delete(*doc_ids)
+        except Exception as exc:  # pragma: no cover - redis runtime guard
+            print(f"Failed to delete stale Redis documents: {exc}")
 
 
 @api_view(["POST"])
@@ -122,6 +170,9 @@ def upload_document(request):
         model="qwen3-embedding:0.6b",
         base_url="http://192.168.50.17:11434",
     )
+    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+
+    _delete_existing_file_documents(redis_url, file_name)
 
     if not chunked_documents:
         return Response(
@@ -135,7 +186,6 @@ def upload_document(request):
             status=status.HTTP_200_OK,
         )
 
-    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
     try:
         RedisVectorStore.from_documents(
             documents=chunked_documents,
