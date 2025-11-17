@@ -686,12 +686,11 @@ Key takeaways: ${userMessage}`
                       {message.content}
                     </div>
                     {message.annotations?.length ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {message.annotations.map((annotation) => (
-                          <div key={annotation} className="badge badge-outline">
-                            {annotation}
-                          </div>
-                        ))}
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-primary">
+                        <span className="font-semibold opacity-70">{t.using}</span>
+                        <span className="opacity-80">
+                          {message.annotations.join(' · ')}
+                        </span>
                       </div>
                     ) : null}
                   </div>
