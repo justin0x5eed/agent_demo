@@ -130,7 +130,8 @@ def upload_document(request):
     redis_client = redis.Redis.from_url(
         getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
     )
-    redis_client.set(file_name, json.dumps(redis_payload))
+    # Store the payload in Redis for one hour to avoid stale data lingering
+    redis_client.set(file_name, json.dumps(redis_payload), ex=60 * 60)
 
     return Response(
         {
