@@ -9,7 +9,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
-from langchain_community.vectorstores.redis.filters import TokenEscaper
 from langchain_ollama import OllamaEmbeddings
 from redis.commands.search.query import Query
 from rest_framework import status
@@ -64,20 +63,18 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
     return documents
 
 
-_TAG_VALUE_ESCAPER = TokenEscaper()
-
-
 def _sanitize_tag_for_query(tag_value: str) -> str:
     """Normalize a user-supplied tag so it matches Redis' stored format."""
 
     if not isinstance(tag_value, str):
         raise TypeError("Redis tag values must be strings.")
 
-    # ``RedisFilter.tag`` relies on the ``TokenEscaper`` helper to escape
-    # punctuation (``.``, ``/``, spaces, etc.) so the value can be safely used in
-    # a TAG query. Reuse the same escaper so our parameterized Query behaves the
-    # same as ``RedisFilter`` and matches the values stored by ``RedisVectorStore``.
-    return _TAG_VALUE_ESCAPER.escape(tag_value)
+    # ``RedisFilter`` used to ship a helper that escaped punctuation so the
+    # resulting string could be embedded safely in a TAG query. The helper was
+    # removed upstream, so reproduce the minimal behavior we need here by
+    # wrapping the value in quotes and escaping any embedded quotes/backslashes.
+    escaped = tag_value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
@@ -96,9 +93,9 @@ def _delete_existing_file_documents(redis_url: str, file_name: str) -> None:
         # Index does not exist yet, so there are no stale documents to remove.
         return
 
-    # ``RedisFilter`` renders values using the Redis TAG query syntax. Certain
-    # characters (e.g. ``.``) have special meaning in that syntax, so we build a
-    # parameterized query instead of embedding the raw filename directly.
+    # RediSearch TAG queries treat certain punctuation characters (e.g. ``.``)
+    # as operators, so we build a parameterized query instead of embedding the
+    # raw filename directly.
     # Dialect 2 adds support for parameterized ``$name`` placeholders.
     query_str = f"(@{SOURCE_TAG_FIELD}:{{$tag_val}})"
     base_query = Query(query_str).dialect(2)
