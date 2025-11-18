@@ -100,7 +100,8 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
             try:
                 result = search.search(query)
             except redis.exceptions.ResponseError as exc:
-                if "Unknown Index name" in str(exc):
+                exc_message = str(exc).lower()
+                if "unknown index name" in exc_message or "no such index" in exc_message:
                     # No index has been created yet, nothing to delete.
                     return deleted_sources
                 raise RuntimeError(
