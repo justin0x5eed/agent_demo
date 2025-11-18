@@ -77,11 +77,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
     if not sources:
         return set()
 
-    print(
-        "[Redis/Delete] 正在准备删除以下来源:",
-        ", ".join(sorted(sources)) or "<无>",
-    )
-
     try:
         client = redis.from_url(redis_url, decode_responses=True)
     except redis.exceptions.RedisError as exc:  # pragma: no cover - connection guard
@@ -97,7 +92,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
         query_string = f'@_metadata_json:("{escaped_value}")'
         page_size = 500
 
-        print(f"[Redis/Delete] 正在检查来源 '{source}' 的现有分片")
         while True:
             query = Query(query_string).return_fields().paging(0, page_size)
             try:
@@ -117,9 +111,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
 
             ids = [doc.id for doc in docs if getattr(doc, "id", None)]
             if not ids:
-                print(
-                    f"[Redis/Delete] 未返回来源 '{source}' 的 Redis 文档 ID，停止循环"
-                )
                 break
 
             try:
@@ -130,9 +121,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
                 ) from exc
 
             deleted_sources.add(source)
-            print(
-                f"[Redis/Delete] 已删除来源 '{source}' 的 {len(ids)} 个分片，继续翻页"
-            )
 
     return deleted_sources
 
@@ -160,7 +148,6 @@ def upload_document(request):
 
     sources_to_replace: set[str] = set()
 
-    print(f"[Upload] 收到 {len(uploads)} 个文件等待处理")
     for upload in uploads:
         file_name = upload.name
         extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
@@ -209,9 +196,6 @@ def upload_document(request):
             )
 
         chunked_documents = text_splitter.split_documents(documents)
-        print(
-            f"[Upload] 文件 '{file_name}' 被切分为 {len(chunked_documents)} 个分片"
-        )
         aggregated_chunks.extend(chunked_documents)
 
         per_file_results.append(
@@ -238,15 +222,6 @@ def upload_document(request):
             {"detail": str(exc)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-    print(
-        "[Upload] 标记为需要替换的来源:",
-        ", ".join(sorted(sources_to_replace)) or "<无>",
-    )
-    print(
-        "[Upload] 实际完成替换的来源:",
-        ", ".join(sorted(replaced_sources)) or "<无>",
-    )
 
     if replaced_sources:
         for result in per_file_results:
@@ -275,7 +250,6 @@ def upload_document(request):
         model="qwen3-embedding:0.6b",
         base_url="http://192.168.50.17:11434",
     )
-    print(f"[Upload] 正在向 Redis 写入 {len(aggregated_chunks)} 个分片的向量")
     try:
         RedisVectorStore.from_documents(
             documents=aggregated_chunks,
@@ -289,17 +263,12 @@ def upload_document(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     preview_count = min(3, len(aggregated_chunks))
-    print(
-        f"[Upload] Redis 写入完成，共 {len(aggregated_chunks)} 个分片，展示前 {preview_count} 条"
-    )
     for idx in range(preview_count):
         doc = aggregated_chunks[idx]
         source = doc.metadata.get("source", "<unknown>")
         snippet = doc.page_content.strip().replace("\n", " ")
         if len(snippet) > 120:
             snippet = f"{snippet[:117]}..."
-        print(f"  - 来源: {source}, 预览: {snippet}")
-    print("[Upload] Redis 向量索引更新完成")
 
     if len(per_file_results) == 1:
         return Response(per_file_results[0], status=status.HTTP_200_OK)
@@ -411,7 +380,7 @@ def receive_message(request):
             f"Question: {question}\nAnswer:"
         )
 
-    print(f"[Frontend] Received frontend payload: {data}")
+    print(f"[Frontend] Received payload from frontend: {data}")
     answer = llm.invoke(prompt)
     tool = DuckDuckGoSearchRun()
 
