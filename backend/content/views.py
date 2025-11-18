@@ -8,7 +8,7 @@ from django.shortcuts import render
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
-from langchain_redis import RedisFilter, RedisVectorStore
+from langchain_redis import RedisVectorStore
 from langchain_community.vectorstores.redis.filters import TokenEscaper
 from langchain_ollama import OllamaEmbeddings
 from redis.commands.search.query import Query
@@ -301,16 +301,16 @@ def receive_message(request):
     allowed_sources = set(file_names)
     metadata_filter = None
     if file_names:
-        expressions = [RedisFilter.tag(SOURCE_TAG_FIELD) == name for name in file_names]
-        metadata_filter = expressions[0]
-        for expression in expressions[1:]:
-            metadata_filter = metadata_filter | expression
+        if len(file_names) == 1:
+            metadata_filter = {SOURCE_FIELD: file_names[0]}
+        else:
+            metadata_filter = {"$or": [{SOURCE_FIELD: name} for name in file_names]}
 
     retrieved_docs = []
     try:
         similarity_kwargs = {"k": 3}
         if metadata_filter is not None:
-            similarity_kwargs["filter_expression"] = metadata_filter
+            similarity_kwargs["filter"] = metadata_filter
 
         retrieved_docs = vector_store.similarity_search(question, **similarity_kwargs)
     except Exception as exc:  # pragma: no cover - vector store runtime guard
