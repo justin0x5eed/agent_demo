@@ -9,12 +9,12 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
-from langchain_community.vectorstores.redis import RedisFilter
 from langchain_ollama import OllamaEmbeddings
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from langchain_ollama import OllamaLLM
+from redis.commands.search.query import Query
 
 MODELS = {
     "qwen3": "qwen3:30b",
@@ -60,6 +60,83 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
     return documents
 
 
+def _escape_redis_query_value(raw_value: str) -> str:
+    """Escape user-provided strings for a Redis full-text query."""
+
+    if not raw_value:
+        return raw_value
+
+    escaped = raw_value.replace("\\", "\\\\")
+    escaped = escaped.replace('"', '\\"')
+    return escaped
+
+
+def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str]) -> set[str]:
+    """Remove all chunks for the provided sources and return the ones that were deleted."""
+
+    if not sources:
+        return set()
+
+    print(
+        "[Redis/Delete] 正在准备删除以下来源:",
+        ", ".join(sorted(sources)) or "<无>",
+    )
+
+    try:
+        client = redis.from_url(redis_url, decode_responses=True)
+    except redis.exceptions.RedisError as exc:  # pragma: no cover - connection guard
+        raise RuntimeError(f"Unable to connect to Redis: {exc}") from exc
+
+    deleted_sources: set[str] = set()
+    search = client.ft(index_name)
+    for source in sources:
+        escaped_value = _escape_redis_query_value(source)
+        # Newer indexes created by LangChain store metadata as JSON inside the
+        # `_metadata_json` TEXT field. Query it directly to find any chunks that
+        # reference the current source value.
+        query_string = f'@_metadata_json:("{escaped_value}")'
+        page_size = 500
+
+        print(f"[Redis/Delete] 正在检查来源 '{source}' 的现有分片")
+        while True:
+            query = Query(query_string).return_fields().paging(0, page_size)
+            try:
+                result = search.search(query)
+            except redis.exceptions.ResponseError as exc:
+                exc_message = str(exc).lower()
+                if "unknown index name" in exc_message or "no such index" in exc_message:
+                    # No index has been created yet, nothing to delete.
+                    return deleted_sources
+                raise RuntimeError(
+                    f"Unable to inspect existing chunks for '{source}': {exc}"
+                ) from exc
+
+            docs = getattr(result, "docs", None) or []
+            if not docs:
+                break
+
+            ids = [doc.id for doc in docs if getattr(doc, "id", None)]
+            if not ids:
+                print(
+                    f"[Redis/Delete] 未返回来源 '{source}' 的 Redis 文档 ID，停止循环"
+                )
+                break
+
+            try:
+                client.delete(*ids)
+            except redis.exceptions.RedisError as exc:
+                raise RuntimeError(
+                    f"Unable to remove existing chunks for '{source}': {exc}"
+                ) from exc
+
+            deleted_sources.add(source)
+            print(
+                f"[Redis/Delete] 已删除来源 '{source}' 的 {len(ids)} 个分片，继续翻页"
+            )
+
+    return deleted_sources
+
+
 @api_view(["POST"])
 def upload_document(request):
     """Handle one or more document uploads without persisting them to disk."""
@@ -81,6 +158,9 @@ def upload_document(request):
     aggregated_chunks = []
     per_file_results = []
 
+    sources_to_replace: set[str] = set()
+
+    print(f"[Upload] 收到 {len(uploads)} 个文件等待处理")
     for upload in uploads:
         file_name = upload.name
         extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
@@ -129,6 +209,9 @@ def upload_document(request):
             )
 
         chunked_documents = text_splitter.split_documents(documents)
+        print(
+            f"[Upload] 文件 '{file_name}' 被切分为 {len(chunked_documents)} 个分片"
+        )
         aggregated_chunks.extend(chunked_documents)
 
         per_file_results.append(
@@ -140,6 +223,37 @@ def upload_document(request):
                 "chunk_count": len(chunked_documents),
             }
         )
+        sources_to_replace.add(file_name)
+
+    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+
+    try:
+        replaced_sources = _delete_existing_sources(
+            redis_url=redis_url,
+            index_name=REDIS_INDEX_NAME,
+            sources=sources_to_replace,
+        )
+    except RuntimeError as exc:  # pragma: no cover - redis/vector store runtime guard
+        return Response(
+            {"detail": str(exc)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    print(
+        "[Upload] 标记为需要替换的来源:",
+        ", ".join(sorted(sources_to_replace)) or "<无>",
+    )
+    print(
+        "[Upload] 实际完成替换的来源:",
+        ", ".join(sorted(replaced_sources)) or "<无>",
+    )
+
+    if replaced_sources:
+        for result in per_file_results:
+            result["replaced_previous"] = result["file_name"] in replaced_sources
+    else:
+        for result in per_file_results:
+            result["replaced_previous"] = False
 
     if not aggregated_chunks:
         # Nothing to embed, return the per-file metadata as-is.
@@ -161,8 +275,7 @@ def upload_document(request):
         model="qwen3-embedding:0.6b",
         base_url="http://192.168.50.17:11434",
     )
-
-    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+    print(f"[Upload] 正在向 Redis 写入 {len(aggregated_chunks)} 个分片的向量")
     try:
         RedisVectorStore.from_documents(
             documents=aggregated_chunks,
@@ -175,6 +288,18 @@ def upload_document(request):
             {"detail": f"Unable to store document chunks in Redis: {exc}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+    preview_count = min(3, len(aggregated_chunks))
+    print(
+        f"[Upload] Redis 写入完成，共 {len(aggregated_chunks)} 个分片，展示前 {preview_count} 条"
+    )
+    for idx in range(preview_count):
+        doc = aggregated_chunks[idx]
+        source = doc.metadata.get("source", "<unknown>")
+        snippet = doc.page_content.strip().replace("\n", " ")
+        if len(snippet) > 120:
+            snippet = f"{snippet[:117]}..."
+        print(f"  - 来源: {source}, 预览: {snippet}")
+    print("[Upload] Redis 向量索引更新完成")
 
     if len(per_file_results) == 1:
         return Response(per_file_results[0], status=status.HTTP_200_OK)
@@ -244,22 +369,33 @@ def receive_message(request):
 
     file_names = _normalize_file_names(data.get("file"))
     allowed_sources = set(file_names)
-    metadata_filter = None
-    if file_names:
-        expressions = [RedisFilter.text("source") == name for name in file_names]
-        metadata_filter = expressions[0]
-        for expression in expressions[1:]:
-            metadata_filter = metadata_filter | expression
+    if allowed_sources:
+        print("[Retrieval] 仅在以下来源范围内检索:", ", ".join(sorted(allowed_sources)))
+    else:
+        print("[Retrieval] 未提供来源过滤条件，将检索全部文档")
 
     retrieved_docs = []
     try:
-        similarity_kwargs = {"k": 3}
-        if metadata_filter is not None:
-            similarity_kwargs["filter_expression"] = metadata_filter
+        similarity_k = 3
+        if allowed_sources:
+            similarity_k = max(3, len(allowed_sources) * 3)
 
-        retrieved_docs = vector_store.similarity_search(question, **similarity_kwargs)
+        print(
+            f"[Retrieval] 正在以 k={similarity_k} 执行相似度检索，问题为: {question}"
+        )
+        retrieved_docs = vector_store.similarity_search(question, k=similarity_k)
     except Exception as exc:  # pragma: no cover - vector store runtime guard
-        print(f"Vector store lookup failed: {exc}")
+        print(f"[Retrieval] 相似度检索失败: {exc}")
+
+    if allowed_sources:
+        retrieved_docs = [
+            doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
+        ]
+        print(
+            f"[Retrieval] 过滤后剩余 {len(retrieved_docs)} 个分片"
+        )
+    else:
+        print(f"[Retrieval] 未过滤直接返回 {len(retrieved_docs)} 个分片")
 
     if allowed_sources:
         retrieved_docs = [
@@ -289,7 +425,7 @@ def receive_message(request):
             f"Question: {question}\nAnswer:"
         )
 
-    print(f"Frontend payload: {data}")
+    print(f"[Frontend] 收到的前端载荷: {data}")
     answer = llm.invoke(prompt)
     tool = DuckDuckGoSearchRun()
 
