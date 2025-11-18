@@ -369,38 +369,27 @@ def receive_message(request):
 
     file_names = _normalize_file_names(data.get("file"))
     allowed_sources = set(file_names)
-    if allowed_sources:
-        print("[Retrieval] 仅在以下来源范围内检索:", ", ".join(sorted(allowed_sources)))
-    else:
-        print("[Retrieval] 未提供来源过滤条件，将检索全部文档")
-
     retrieved_docs = []
-    try:
-        similarity_k = 3
-        if allowed_sources:
-            similarity_k = max(3, len(allowed_sources) * 3)
 
-        print(
-            f"[Retrieval] 正在以 k={similarity_k} 执行相似度检索，问题为: {question}"
-        )
-        retrieved_docs = vector_store.similarity_search(question, k=similarity_k)
-    except Exception as exc:  # pragma: no cover - vector store runtime guard
-        print(f"[Retrieval] 相似度检索失败: {exc}")
-
-    if allowed_sources:
-        retrieved_docs = [
-            doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
-        ]
-        print(
-            f"[Retrieval] 过滤后剩余 {len(retrieved_docs)} 个分片"
-        )
+    if not allowed_sources:
+        print("[Retrieval] 未提供文件列表，跳过知识库检索")
     else:
-        print(f"[Retrieval] 未过滤直接返回 {len(retrieved_docs)} 个分片")
+        print("[Retrieval] 仅在以下来源范围内检索:", ", ".join(sorted(allowed_sources)))
+        filtered_docs = []
+        for source in sorted(allowed_sources):
+            try:
+                print(f"[Retrieval] 正在为来源 '{source}' 检索 3 个分片")
+                docs_for_source = vector_store.similarity_search(
+                    question,
+                    k=3,
+                    filter={"source": source},
+                )
+                filtered_docs.extend(docs_for_source)
+            except Exception as exc:  # pragma: no cover - vector store runtime guard
+                print(f"[Retrieval] 来源 '{source}' 相似度检索失败: {exc}")
 
-    if allowed_sources:
-        retrieved_docs = [
-            doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
-        ]
+        retrieved_docs = filtered_docs
+        print(f"[Retrieval] 共检索到 {len(retrieved_docs)} 个分片")
 
     formatted_chunks = []
     for doc in retrieved_docs:
