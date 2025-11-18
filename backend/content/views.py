@@ -397,6 +397,11 @@ def receive_message(request):
     else:
         print(f"[Retrieval] 未过滤直接返回 {len(retrieved_docs)} 个分片")
 
+    if allowed_sources:
+        retrieved_docs = [
+            doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
+        ]
+
     formatted_chunks = []
     for doc in retrieved_docs:
         source = doc.metadata.get("source", "unknown")
