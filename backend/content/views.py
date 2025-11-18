@@ -91,12 +91,10 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
     search = client.ft(index_name)
     for source in sources:
         escaped_value = _escape_redis_query_value(source)
-        # LangChain stores metadata inside a "metadata__<field>" TAG column, but
-        # older indexes might still expose a top-level "source" field. Query
-        # both so that re-uploads reliably match and remove existing chunks.
-        query_string = (
-            f'(@metadata__source:"{escaped_value}" | @source:"{escaped_value}")'
-        )
+        # Newer indexes created by LangChain store metadata as JSON inside the
+        # `_metadata_json` TEXT field. Query it directly to find any chunks that
+        # reference the current source value.
+        query_string = f'@_metadata_json:("{escaped_value}")'
         page_size = 500
 
         print(f"[Redis/Delete] 正在检查来源 '{source}' 的现有分片")
