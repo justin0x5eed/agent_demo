@@ -77,11 +77,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
     if not sources:
         return set()
 
-    print(
-        "[Redis/Delete] 正在准备删除以下来源:",
-        ", ".join(sorted(sources)) or "<无>",
-    )
-
     try:
         client = redis.from_url(redis_url, decode_responses=True)
     except redis.exceptions.RedisError as exc:  # pragma: no cover - connection guard
@@ -97,7 +92,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
         query_string = f'@_metadata_json:("{escaped_value}")'
         page_size = 500
 
-        print(f"[Redis/Delete] 正在检查来源 '{source}' 的现有分片")
         while True:
             query = Query(query_string).return_fields().paging(0, page_size)
             try:
@@ -117,9 +111,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
 
             ids = [doc.id for doc in docs if getattr(doc, "id", None)]
             if not ids:
-                print(
-                    f"[Redis/Delete] 未返回来源 '{source}' 的 Redis 文档 ID，停止循环"
-                )
                 break
 
             try:
@@ -130,9 +121,6 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
                 ) from exc
 
             deleted_sources.add(source)
-            print(
-                f"[Redis/Delete] 已删除来源 '{source}' 的 {len(ids)} 个分片，继续翻页"
-            )
 
     return deleted_sources
 
@@ -154,13 +142,12 @@ def upload_document(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
     aggregated_chunks = []
     per_file_results = []
 
     sources_to_replace: set[str] = set()
 
-    print(f"[Upload] 收到 {len(uploads)} 个文件等待处理")
     for upload in uploads:
         file_name = upload.name
         extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
@@ -239,15 +226,6 @@ def upload_document(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    print(
-        "[Upload] 标记为需要替换的来源:",
-        ", ".join(sorted(sources_to_replace)) or "<无>",
-    )
-    print(
-        "[Upload] 实际完成替换的来源:",
-        ", ".join(sorted(replaced_sources)) or "<无>",
-    )
-
     if replaced_sources:
         for result in per_file_results:
             result["replaced_previous"] = result["file_name"] in replaced_sources
@@ -275,7 +253,6 @@ def upload_document(request):
         model="qwen3-embedding:0.6b",
         base_url="http://192.168.50.17:11434",
     )
-    print(f"[Upload] 正在向 Redis 写入 {len(aggregated_chunks)} 个分片的向量")
     try:
         RedisVectorStore.from_documents(
             documents=aggregated_chunks,
@@ -369,38 +346,31 @@ def receive_message(request):
 
     file_names = _normalize_file_names(data.get("file"))
     allowed_sources = set(file_names)
-    if allowed_sources:
-        print("[Retrieval] 仅在以下来源范围内检索:", ", ".join(sorted(allowed_sources)))
-    else:
-        print("[Retrieval] 未提供来源过滤条件，将检索全部文档")
-
     retrieved_docs = []
-    try:
-        similarity_k = 3
-        if allowed_sources:
-            similarity_k = max(3, len(allowed_sources) * 3)
-
-        print(
-            f"[Retrieval] 正在以 k={similarity_k} 执行相似度检索，问题为: {question}"
-        )
-        retrieved_docs = vector_store.similarity_search(question, k=similarity_k)
-    except Exception as exc:  # pragma: no cover - vector store runtime guard
-        print(f"[Retrieval] 相似度检索失败: {exc}")
 
     if allowed_sources:
-        retrieved_docs = [
-            doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
-        ]
-        print(
-            f"[Retrieval] 过滤后剩余 {len(retrieved_docs)} 个分片"
-        )
-    else:
-        print(f"[Retrieval] 未过滤直接返回 {len(retrieved_docs)} 个分片")
+        filtered_docs = []
+        for source in sorted(allowed_sources):
+            escaped_source = _escape_redis_query_value(source)
+            # RedisVectorStore expects either a RediSearch filter expression
+            # string or a FilterExpression instance. Passing a bare dict causes
+            # a runtime failure ("filter_expression must be of type ...").
+            # We query the JSON metadata field directly, mirroring the
+            # `_delete_existing_sources` helper above.
+            filter_expression = f'@_metadata_json:("{escaped_source}")'
+            try:
+                docs_for_source = vector_store.similarity_search(
+                    question,
+                    k=3,
+                    filter=filter_expression,
+                )
+                filtered_docs.extend(docs_for_source)
+            except Exception as exc:  # pragma: no cover - vector store runtime guard
+                raise RuntimeError(
+                    f"Similarity search failed for source '{source}': {exc}"
+                ) from exc
 
-    if allowed_sources:
-        retrieved_docs = [
-            doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
-        ]
+        retrieved_docs = filtered_docs
 
     formatted_chunks = []
     for doc in retrieved_docs:
@@ -425,7 +395,7 @@ def receive_message(request):
             f"Question: {question}\nAnswer:"
         )
 
-    print(f"[Frontend] 收到的前端载荷: {data}")
+    print(f"[Frontend] Received payload from frontend: {data}")
     answer = llm.invoke(prompt)
     tool = DuckDuckGoSearchRun()
 
