@@ -9,12 +9,12 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_redis import RedisVectorStore
-from langchain_community.vectorstores.redis import RedisFilter
 from langchain_ollama import OllamaEmbeddings
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from langchain_ollama import OllamaLLM
+from redis.commands.search.query import Query
 
 MODELS = {
     "qwen3": "qwen3:30b",
@@ -60,6 +60,67 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
     return documents
 
 
+def _escape_redis_query_value(raw_value: str) -> str:
+    """Escape user-provided strings for a Redis full-text query."""
+
+    if not raw_value:
+        return raw_value
+
+    escaped = raw_value.replace("\\", "\\\\")
+    escaped = escaped.replace('"', '\\"')
+    return escaped
+
+
+def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str]) -> set[str]:
+    """Remove all chunks for the provided sources and return the ones that were deleted."""
+
+    if not sources:
+        return set()
+
+    try:
+        client = redis.from_url(redis_url, decode_responses=True)
+    except redis.exceptions.RedisError as exc:  # pragma: no cover - connection guard
+        raise RuntimeError(f"Unable to connect to Redis: {exc}") from exc
+
+    deleted_sources: set[str] = set()
+    search = client.ft(index_name)
+    for source in sources:
+        escaped_value = _escape_redis_query_value(source)
+        query_string = f'@source:"{escaped_value}"'
+        page_size = 500
+
+        while True:
+            query = Query(query_string).return_fields().paging(0, page_size)
+            try:
+                result = search.search(query)
+            except redis.exceptions.ResponseError as exc:
+                if "Unknown Index name" in str(exc):
+                    # No index has been created yet, nothing to delete.
+                    return deleted_sources
+                raise RuntimeError(
+                    f"Unable to inspect existing chunks for '{source}': {exc}"
+                ) from exc
+
+            docs = getattr(result, "docs", None) or []
+            if not docs:
+                break
+
+            ids = [doc.id for doc in docs if getattr(doc, "id", None)]
+            if not ids:
+                break
+
+            try:
+                client.delete(*ids)
+            except redis.exceptions.RedisError as exc:
+                raise RuntimeError(
+                    f"Unable to remove existing chunks for '{source}': {exc}"
+                ) from exc
+
+            deleted_sources.add(source)
+
+    return deleted_sources
+
+
 @api_view(["POST"])
 def upload_document(request):
     """Handle one or more document uploads without persisting them to disk."""
@@ -80,6 +141,8 @@ def upload_document(request):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     aggregated_chunks = []
     per_file_results = []
+
+    sources_to_replace: set[str] = set()
 
     for upload in uploads:
         file_name = upload.name
@@ -140,6 +203,28 @@ def upload_document(request):
                 "chunk_count": len(chunked_documents),
             }
         )
+        sources_to_replace.add(file_name)
+
+    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+
+    try:
+        replaced_sources = _delete_existing_sources(
+            redis_url=redis_url,
+            index_name=REDIS_INDEX_NAME,
+            sources=sources_to_replace,
+        )
+    except RuntimeError as exc:  # pragma: no cover - redis/vector store runtime guard
+        return Response(
+            {"detail": str(exc)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    if replaced_sources:
+        for result in per_file_results:
+            result["replaced_previous"] = result["file_name"] in replaced_sources
+    else:
+        for result in per_file_results:
+            result["replaced_previous"] = False
 
     if not aggregated_chunks:
         # Nothing to embed, return the per-file metadata as-is.
@@ -161,8 +246,6 @@ def upload_document(request):
         model="qwen3-embedding:0.6b",
         base_url="http://192.168.50.17:11434",
     )
-
-    redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
     try:
         RedisVectorStore.from_documents(
             documents=aggregated_chunks,
@@ -244,20 +327,14 @@ def receive_message(request):
 
     file_names = _normalize_file_names(data.get("file"))
     allowed_sources = set(file_names)
-    metadata_filter = None
-    if file_names:
-        expressions = [RedisFilter.text("source") == name for name in file_names]
-        metadata_filter = expressions[0]
-        for expression in expressions[1:]:
-            metadata_filter = metadata_filter | expression
 
     retrieved_docs = []
     try:
-        similarity_kwargs = {"k": 3}
-        if metadata_filter is not None:
-            similarity_kwargs["filter_expression"] = metadata_filter
+        similarity_k = 3
+        if allowed_sources:
+            similarity_k = max(3, len(allowed_sources) * 3)
 
-        retrieved_docs = vector_store.similarity_search(question, **similarity_kwargs)
+        retrieved_docs = vector_store.similarity_search(question, k=similarity_k)
     except Exception as exc:  # pragma: no cover - vector store runtime guard
         print(f"Vector store lookup failed: {exc}")
 
