@@ -60,6 +60,54 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
     return documents
 
 
+def _delete_chunks_for_source(vector_store, source_name: str, index_name: str) -> bool:
+    """Remove all Redis hash entries that belong to the given source."""
+
+    if not source_name:
+        return False
+
+    client = getattr(vector_store, "client", None)
+    if client is None:
+        return False
+
+    key_prefix = getattr(vector_store, "key_prefix", f"doc:{index_name}")
+    pattern = f"{key_prefix}:*"
+    keys_to_delete = []
+
+    cursor = 0
+    try:
+        while True:
+            cursor, batch = client.scan(cursor=cursor, match=pattern, count=500)
+            for key in batch:
+                stored_source = client.hget(key, "source")
+                if stored_source is None:
+                    continue
+
+                if isinstance(stored_source, (bytes, bytearray)):
+                    try:
+                        stored_source = stored_source.decode("utf-8")
+                    except UnicodeDecodeError:
+                        stored_source = stored_source.decode("utf-8", errors="ignore")
+
+                if stored_source == source_name:
+                    keys_to_delete.append(key)
+
+            if cursor == 0:
+                break
+    except redis.RedisError:
+        return False
+
+    if not keys_to_delete:
+        return False
+
+    try:
+        client.delete(*keys_to_delete)
+    except redis.RedisError:
+        return False
+
+    return True
+
+
 @api_view(["POST"])
 def upload_document(request):
     """Handle one or more document uploads without persisting them to disk."""
@@ -138,6 +186,7 @@ def upload_document(request):
                 "file_size": upload.size,
                 "content_length": len(file_content),
                 "chunk_count": len(chunked_documents),
+                "replaced_existing": False,
             }
         )
 
@@ -163,6 +212,35 @@ def upload_document(request):
     )
 
     redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
+
+    file_result_map = {result["file_name"]: result for result in per_file_results}
+    existing_vector_store = None
+    if file_result_map:
+        try:
+            existing_vector_store = RedisVectorStore.from_existing_index(
+                embedding=embedder,
+                redis_url=redis_url,
+                index_name=REDIS_INDEX_NAME,
+            )
+        except Exception:
+            existing_vector_store = None
+
+    if existing_vector_store is not None:
+        for file_name in file_result_map:
+            try:
+                existing_docs = existing_vector_store.similarity_search(
+                    "__dedupe__",
+                    k=1,
+                    filter_expression=RedisFilter.text("source") == file_name,
+                )
+            except Exception:
+                continue
+
+            if existing_docs and _delete_chunks_for_source(
+                existing_vector_store, file_name, REDIS_INDEX_NAME
+            ):
+                file_result_map[file_name]["replaced_existing"] = True
+
     try:
         RedisVectorStore.from_documents(
             documents=aggregated_chunks,
