@@ -262,13 +262,6 @@ def upload_document(request):
             {"detail": f"Unable to store document chunks in Redis: {exc}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-    preview_count = min(3, len(aggregated_chunks))
-    for idx in range(preview_count):
-        doc = aggregated_chunks[idx]
-        source = doc.metadata.get("source", "<unknown>")
-        snippet = doc.page_content.strip().replace("\n", " ")
-        if len(snippet) > 120:
-            snippet = f"{snippet[:117]}..."
 
     if len(per_file_results) == 1:
         return Response(per_file_results[0], status=status.HTTP_200_OK)
