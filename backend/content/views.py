@@ -197,6 +197,9 @@ def upload_document(request):
             )
 
         chunked_documents = text_splitter.split_documents(documents)
+        print(
+            f"[Upload] 文件 '{file_name}' 被切分为 {len(chunked_documents)} 个分片"
+        )
         aggregated_chunks.extend(chunked_documents)
 
         per_file_results.append(
@@ -263,6 +266,18 @@ def upload_document(request):
             {"detail": f"Unable to store document chunks in Redis: {exc}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+    preview_count = min(3, len(aggregated_chunks))
+    print(
+        f"[Upload] Redis 写入完成，共 {len(aggregated_chunks)} 个分片，展示前 {preview_count} 条"
+    )
+    for idx in range(preview_count):
+        doc = aggregated_chunks[idx]
+        source = doc.metadata.get("source", "<unknown>")
+        snippet = doc.page_content.strip().replace("\n", " ")
+        if len(snippet) > 120:
+            snippet = f"{snippet[:117]}..."
+        print(f"  - 来源: {source}, 预览: {snippet}")
+    print("[Upload] Redis 向量索引更新完成")
 
     if len(per_file_results) == 1:
         return Response(per_file_results[0], status=status.HTTP_200_OK)
