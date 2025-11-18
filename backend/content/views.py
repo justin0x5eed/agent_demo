@@ -154,7 +154,7 @@ def upload_document(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
     aggregated_chunks = []
     per_file_results = []
 
