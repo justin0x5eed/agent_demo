@@ -336,11 +336,18 @@ def receive_message(request):
     if allowed_sources:
         filtered_docs = []
         for source in sorted(allowed_sources):
+            escaped_source = _escape_redis_query_value(source)
+            # RedisVectorStore expects either a RediSearch filter expression
+            # string or a FilterExpression instance. Passing a bare dict causes
+            # a runtime failure ("filter_expression must be of type ...").
+            # We query the JSON metadata field directly, mirroring the
+            # `_delete_existing_sources` helper above.
+            filter_expression = f'@_metadata_json:("{escaped_source}")'
             try:
                 docs_for_source = vector_store.similarity_search(
                     question,
                     k=3,
-                    filter={"source": source},
+                    filter=filter_expression,
                 )
                 filtered_docs.extend(docs_for_source)
             except Exception as exc:  # pragma: no cover - vector store runtime guard
