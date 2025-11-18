@@ -62,72 +62,110 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
 
 @api_view(["POST"])
 def upload_document(request):
-    """Handle a document upload without persisting it to disk."""
+    """Handle one or more document uploads without persisting them to disk."""
 
-    upload = request.FILES.get("file")
-    if upload is None:
+    uploads = request.FILES.getlist("file")
+    if not uploads:
+        # Fallback to single value lookups for clients that don't use getlist.
+        single_upload = request.FILES.get("file")
+        if single_upload is not None:
+            uploads = [single_upload]
+
+    if not uploads:
         return Response(
             {"detail": "No file provided. Please upload a txt, doc, or docx file."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    file_name = upload.name
-    extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
-    if extension not in ALLOWED_FILE_TYPES:
-        return Response(
-            {"detail": f"Unsupported file type '{extension}'. Allowed: {', '.join(sorted(ALLOWED_FILE_TYPES))}."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if upload.size > MAX_FILE_SIZE_BYTES:
-        return Response(
-            {"detail": "File too large. Maximum size is 1MB."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # Read the contents without saving the file to disk
-    file_bytes = upload.read()
-
-    try:
-        file_content = file_bytes.decode("utf-8")
-    except UnicodeDecodeError:
-        return Response(
-            {"detail": "Only UTF-8 encoded text files are supported."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        documents = _load_documents_from_bytes(file_bytes, extension, file_name)
-    except Exception as exc:  # pragma: no cover - defensive guard
-        return Response(
-            {"detail": f"Unable to load document: {exc}"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunked_documents = text_splitter.split_documents(documents)
+    aggregated_chunks = []
+    per_file_results = []
+
+    for upload in uploads:
+        file_name = upload.name
+        extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
+        if extension not in ALLOWED_FILE_TYPES:
+            return Response(
+                {
+                    "detail": (
+                        f"Unsupported file type '{extension}' for file '{file_name}'. "
+                        f"Allowed: {', '.join(sorted(ALLOWED_FILE_TYPES))}."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if upload.size > MAX_FILE_SIZE_BYTES:
+            return Response(
+                {
+                    "detail": (
+                        f"File '{file_name}' is too large. Maximum size is 1MB."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        upload.seek(0)
+        file_bytes = upload.read()
+
+        try:
+            file_content = file_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            return Response(
+                {
+                    "detail": (
+                        f"Only UTF-8 encoded text files are supported (failed on '{file_name}')."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            documents = _load_documents_from_bytes(file_bytes, extension, file_name)
+        except Exception as exc:  # pragma: no cover - defensive guard
+            return Response(
+                {"detail": f"Unable to load document '{file_name}': {exc}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        chunked_documents = text_splitter.split_documents(documents)
+        aggregated_chunks.extend(chunked_documents)
+
+        per_file_results.append(
+            {
+                "status": "processed",
+                "file_name": file_name,
+                "file_size": upload.size,
+                "content_length": len(file_content),
+                "chunk_count": len(chunked_documents),
+            }
+        )
+
+    if not aggregated_chunks:
+        # Nothing to embed, return the per-file metadata as-is.
+        if len(per_file_results) == 1:
+            return Response(per_file_results[0], status=status.HTTP_200_OK)
+
+        total_chunks = sum(result["chunk_count"] for result in per_file_results)
+        return Response(
+            {
+                "status": "processed",
+                "file_count": len(per_file_results),
+                "total_chunks": total_chunks,
+                "files": per_file_results,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     embedder = OllamaEmbeddings(
         model="qwen3-embedding:0.6b",
         base_url="http://192.168.50.17:11434",
     )
 
-    if not chunked_documents:
-        return Response(
-            {
-                "status": "processed",
-                "file_name": file_name,
-                "file_size": upload.size,
-                "content_length": len(file_content),
-                "chunk_count": 0,
-            },
-            status=status.HTTP_200_OK,
-        )
-
     redis_url = getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/0")
     try:
         RedisVectorStore.from_documents(
-            documents=chunked_documents,
+            documents=aggregated_chunks,
             embedding=embedder,
             redis_url=redis_url,
             index_name=REDIS_INDEX_NAME,
@@ -138,13 +176,16 @@ def upload_document(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+    if len(per_file_results) == 1:
+        return Response(per_file_results[0], status=status.HTTP_200_OK)
+
+    total_chunks = sum(result["chunk_count"] for result in per_file_results)
     return Response(
         {
             "status": "processed",
-            "file_name": file_name,
-            "file_size": upload.size,
-            "content_length": len(file_content),
-            "chunk_count": len(chunked_documents),
+            "file_count": len(per_file_results),
+            "total_chunks": total_chunks,
+            "files": per_file_results,
         },
         status=status.HTTP_200_OK,
     )
