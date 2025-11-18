@@ -371,14 +371,10 @@ def receive_message(request):
     allowed_sources = set(file_names)
     retrieved_docs = []
 
-    if not allowed_sources:
-        print("[Retrieval] 未提供文件列表，跳过知识库检索")
-    else:
-        print("[Retrieval] 仅在以下来源范围内检索:", ", ".join(sorted(allowed_sources)))
+    if allowed_sources:
         filtered_docs = []
         for source in sorted(allowed_sources):
             try:
-                print(f"[Retrieval] 正在为来源 '{source}' 检索 3 个分片")
                 docs_for_source = vector_store.similarity_search(
                     question,
                     k=3,
@@ -386,10 +382,11 @@ def receive_message(request):
                 )
                 filtered_docs.extend(docs_for_source)
             except Exception as exc:  # pragma: no cover - vector store runtime guard
-                print(f"[Retrieval] 来源 '{source}' 相似度检索失败: {exc}")
+                raise RuntimeError(
+                    f"Similarity search failed for source '{source}': {exc}"
+                ) from exc
 
         retrieved_docs = filtered_docs
-        print(f"[Retrieval] 共检索到 {len(retrieved_docs)} 个分片")
 
     formatted_chunks = []
     for doc in retrieved_docs:
@@ -414,7 +411,7 @@ def receive_message(request):
             f"Question: {question}\nAnswer:"
         )
 
-    print(f"[Frontend] 收到的前端载荷: {data}")
+    print(f"[Frontend] Received frontend payload: {data}")
     answer = llm.invoke(prompt)
     tool = DuckDuckGoSearchRun()
 
