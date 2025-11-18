@@ -61,12 +61,18 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
 
 
 def _escape_redis_query_value(raw_value: str) -> str:
-    """Escape user-provided strings for a Redis full-text query."""
+    """Escape user strings for RediSearch, including Unicode filenames."""
 
     if not raw_value:
         return raw_value
 
-    escaped = raw_value.replace("\\", "\\\\")
+    # LangChain stores metadata as JSON text with ensure_ascii=True, which means
+    # non-ASCII characters are persisted as ``\uXXXX`` escape sequences. We need
+    # to mirror that representation when querying the ``_metadata_json`` field
+    # otherwise filenames like ``中文资料.txt`` will never match.
+    ascii_representation = raw_value.encode("unicode_escape").decode("ascii")
+
+    escaped = ascii_representation.replace("\\", "\\\\")
     escaped = escaped.replace('"', '\\"')
     return escaped
 
