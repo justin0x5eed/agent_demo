@@ -15,6 +15,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from langchain_ollama import OllamaLLM
 from redis.commands.search.query import Query
+print(hello)
 
 MODELS = {
     "qwen3": "qwen3:30b",
@@ -398,3 +399,4 @@ def receive_message(request):
         ]
 
     return Response(response_payload)
+
