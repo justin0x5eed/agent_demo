@@ -243,6 +243,7 @@ def receive_message(request):
         )
 
     file_names = _normalize_file_names(data.get("file"))
+    allowed_sources = set(file_names)
     metadata_filter = None
     if file_names:
         expressions = [RedisFilter.text("source") == name for name in file_names]
@@ -259,6 +260,11 @@ def receive_message(request):
         retrieved_docs = vector_store.similarity_search(question, **similarity_kwargs)
     except Exception as exc:  # pragma: no cover - vector store runtime guard
         print(f"Vector store lookup failed: {exc}")
+
+    if allowed_sources:
+        retrieved_docs = [
+            doc for doc in retrieved_docs if doc.metadata.get("source") in allowed_sources
+        ]
 
     formatted_chunks = []
     for doc in retrieved_docs:
