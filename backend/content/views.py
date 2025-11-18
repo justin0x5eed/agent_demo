@@ -91,7 +91,12 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
     search = client.ft(index_name)
     for source in sources:
         escaped_value = _escape_redis_query_value(source)
-        query_string = f'@source:"{escaped_value}"'
+        # LangChain stores metadata inside a "metadata__<field>" TAG column, but
+        # older indexes might still expose a top-level "source" field. Query
+        # both so that re-uploads reliably match and remove existing chunks.
+        query_string = (
+            f'(@metadata__source:"{escaped_value}" | @source:"{escaped_value}")'
+        )
         page_size = 500
 
         print(f"[Redis/Delete] 正在检查来源 '{source}' 的现有分片")
@@ -285,6 +290,17 @@ def upload_document(request):
             {"detail": f"Unable to store document chunks in Redis: {exc}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+    preview_count = min(3, len(aggregated_chunks))
+    print(
+        f"[Upload] Redis 写入完成，共 {len(aggregated_chunks)} 个分片，展示前 {preview_count} 条"
+    )
+    for idx in range(preview_count):
+        doc = aggregated_chunks[idx]
+        source = doc.metadata.get("source", "<unknown>")
+        snippet = doc.page_content.strip().replace("\n", " ")
+        if len(snippet) > 120:
+            snippet = f"{snippet[:117]}..."
+        print(f"  - 来源: {source}, 预览: {snippet}")
     print("[Upload] Redis 向量索引更新完成")
 
     if len(per_file_results) == 1:
