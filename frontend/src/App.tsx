@@ -421,11 +421,11 @@ Key takeaways: ${userMessage}`
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">
                   {t.title}
                 </p>
-                <h1 className="text-3xl font-bold">Agentic RAG</h1>
+                <h1 className="text-3xl font-bold">Agentic RAG DEMO</h1>
                 <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
               </header>
 
-              <div className="space-y-4">
+              <div className="grid gap-4 md:auto-rows-fr md:grid-cols-2">
                 <div className="rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
                   <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
                   <p className="mb-4 mt-2 text-sm opacity-70">{t.modelDescription}</p>
