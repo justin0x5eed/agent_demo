@@ -60,24 +60,6 @@ def _load_documents_from_bytes(file_bytes: bytes, extension: str, file_name: str
     return documents
 
 
-def _escape_redis_query_value(raw_value: str) -> str:
-    """Escape user strings for RediSearch, including Unicode filenames."""
-
-    if not raw_value:
-        return raw_value
-
-    # LangChain stores metadata as JSON text with ensure_ascii=True, which means
-    # non-ASCII characters are persisted as ``\uXXXX`` escape sequences. We need
-    # to mirror that representation when querying the ``_metadata_json`` field
-    # otherwise filenames like ``中文资料.txt`` will never match.
-    ascii_representation = raw_value.encode("unicode_escape").decode("ascii")
-
-    escaped = ascii_representation
-#    escaped = escaped.replace('-', '\\-')
-#    escaped = escaped.replace('"', '\\"')
-    escaped = ascii_representation.replace("\\", "\\\\")
-    escaped = escaped.replace('"', '\\"')
-    return escaped
 
 
 def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str]) -> set[str]:
@@ -94,11 +76,7 @@ def _delete_existing_sources(redis_url: str, index_name: str, sources: set[str])
     deleted_sources: set[str] = set()
     search = client.ft(index_name)
     for source in sources:
-        escaped_value = _escape_redis_query_value(source)
-        # Newer indexes created by LangChain store metadata as JSON inside the
-        # `_metadata_json` TEXT field. Query it directly to find any chunks that
-        # reference the current source value.
-        query_string = f'@_metadata_json:("{escaped_value}")'
+        query_string = f'@source:"{source}"'
         page_size = 500
 
         while True:
@@ -345,14 +323,7 @@ def receive_message(request):
     if allowed_sources:
         filtered_docs = []
         for source in sorted(allowed_sources):
-            escaped_source = _escape_redis_query_value(source)
-            # RedisVectorStore expects either a RediSearch filter expression
-            # string or a FilterExpression instance. Passing a bare dict causes
-            # a runtime failure ("filter_expression must be of type ...").
-            # We query the JSON metadata field directly, mirroring the
-            # `_delete_existing_sources` helper above.
-            filter_expression = f'@_metadata_json:("{escaped_source}")'
-            print(filter_expression)
+            filter_expression = f'@source:"{source}"'
             try:
                 docs_for_source = vector_store.similarity_search(
                     question,
@@ -394,7 +365,7 @@ def receive_message(request):
     answer = llm.invoke(prompt)
     tool = DuckDuckGoSearchRun()
 
-    _ = tool.run(question)
+    #_ = tool.run(question)
 
     response_payload = {
         "prompt": prompt,
