@@ -72,6 +72,9 @@ def _escape_redis_query_value(raw_value: str) -> str:
     # otherwise filenames like ``中文资料.txt`` will never match.
     ascii_representation = raw_value.encode("unicode_escape").decode("ascii")
 
+    escaped = ascii_representation
+#    escaped = escaped.replace('-', '\\-')
+#    escaped = escaped.replace('"', '\\"')
     escaped = ascii_representation.replace("\\", "\\\\")
     escaped = escaped.replace('"', '\\"')
     return escaped
@@ -349,6 +352,7 @@ def receive_message(request):
             # We query the JSON metadata field directly, mirroring the
             # `_delete_existing_sources` helper above.
             filter_expression = f'@_metadata_json:("{escaped_source}")'
+            print(filter_expression)
             try:
                 docs_for_source = vector_store.similarity_search(
                     question,
