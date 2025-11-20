@@ -519,7 +519,7 @@ Key takeaways: ${userMessage}`
                       {tools.map((tool) => (
                         <div
                           key={tool.id}
-                          className="rounded-box border border-base-200 bg-base-100/80 p-2 text-xs font-semibold"
+                          className="rounded-box border border-base-200 bg-base-100/80 p-2 label-text min-w-0 break-words font-semibold leading-snug"
                         >
                           {tool.label[language]}
                         </div>
