@@ -395,116 +395,116 @@ Key takeaways: ${userMessage}`
                 </header>
               </div>
 
-              <div className="control-grid grid min-h-0 flex-1 grid-cols-1 gap-3 lg:auto-rows-[max-content] lg:grid-rows-none">
-                <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
-                  <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
-                  <p className="mb-3 mt-1 text-sm opacity-70">{t.modelDescription}</p>
-                  <label className="label" htmlFor="model-select">
-                    <span className="label-text font-semibold">{t.modelLabel}</span>
-                  </label>
-                  <select
-                    id="model-select"
-                    className="select select-bordered w-full"
-                    value={selectedModel}
-                    onChange={(event) => setSelectedModel(event.target.value)}
-                  >
-                    {modelOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
-                  <p className="text-base font-semibold text-primary">
-                    {t.knowledgeBaseTitle}
-                  </p>
-                  <p className="mb-3 mt-1 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-semibold">{t.uploadLabel}</span>
-                      <span className="label-text-alt opacity-70">
-                        {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
-                      </span>
+                <div className="control-grid grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2 md:grid-rows-none lg:auto-rows-[max-content]">
+                  <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
+                    <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.modelDescription}</p>
+                    <label className="label" htmlFor="model-select">
+                      <span className="label-text font-semibold">{t.modelLabel}</span>
                     </label>
-                    <input
-                      type="file"
-                      accept=".txt,.doc"
-                      multiple
-                      className="file-input file-input-bordered"
-                      onChange={handleUpload}
-                    />
-                    <p className="mt-2 text-xs text-base-content/60">{t.supportedFormats}</p>
-                    {uploadStatus === 'uploading' && (
-                      <p className="mt-2 text-xs text-info">{t.uploading}</p>
-                    )}
-                    {uploadStatus === 'success' && (
-                      <p className="mt-2 text-xs text-success">{t.uploadSuccess}</p>
-                    )}
-                    {uploadStatus === 'error' && (
-                      <p className="mt-2 text-xs text-error">
-                        {t.uploadError}
-                        {uploadError ? ` (${uploadError})` : null}
-                      </p>
-                    )}
-                    {documents.length > 0 && (
-                      <ul className="mt-2 space-y-1 rounded-box bg-base-200 p-3 text-sm">
-                        {documents.map((file) => (
-                          <li key={file.name} className="flex items-center justify-between">
-                            <span>{file.name}</span>
-                            <span className="text-xs opacity-60">{(file.size / 1024).toFixed(1)} KB</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <select
+                      id="model-select"
+                      className="select select-bordered w-full"
+                      value={selectedModel}
+                      onChange={(event) => setSelectedModel(event.target.value)}
+                    >
+                      {modelOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
+                    <p className="text-base font-semibold text-primary">
+                      {t.webSearchTitle}
+                    </p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.webSearchDescription}</p>
+                    <label className="label cursor-pointer justify-start gap-4">
+                      <input
+                        type="checkbox"
+                        className="toggle toggle-primary"
+                        checked={enableWebSearch}
+                        onChange={(event) => setEnableWebSearch(event.target.checked)}
+                      />
+                      <span className="label-text font-semibold">{t.webSearch}</span>
+                    </label>
+                  </div>
+
+                  <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm md:col-span-2">
+                    <p className="text-base font-semibold text-primary">
+                      {t.knowledgeBaseTitle}
+                    </p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text font-semibold">{t.uploadLabel}</span>
+                        <span className="label-text-alt opacity-70">
+                          {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
+                        </span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".txt,.doc"
+                        multiple
+                        className="file-input file-input-bordered"
+                        onChange={handleUpload}
+                      />
+                      <p className="mt-2 text-xs text-base-content/60">{t.supportedFormats}</p>
+                      {uploadStatus === 'uploading' && (
+                        <p className="mt-2 text-xs text-info">{t.uploading}</p>
+                      )}
+                      {uploadStatus === 'success' && (
+                        <p className="mt-2 text-xs text-success">{t.uploadSuccess}</p>
+                      )}
+                      {uploadStatus === 'error' && (
+                        <p className="mt-2 text-xs text-error">
+                          {t.uploadError}
+                          {uploadError ? ` (${uploadError})` : null}
+                        </p>
+                      )}
+                      {documents.length > 0 && (
+                        <ul className="mt-2 space-y-1 rounded-box bg-base-200 p-3 text-sm">
+                          {documents.map((file) => (
+                            <li key={file.name} className="flex items-center justify-between">
+                              <span>{file.name}</span>
+                              <span className="text-xs opacity-60">{(file.size / 1024).toFixed(1)} KB</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm md:col-span-2 lg:overflow-y-auto">
+                    <p className="text-base font-semibold text-primary">
+                      {t.toolsTitle}
+                    </p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.toolsDescription}</p>
+                    <label className="label cursor-pointer justify-start gap-4">
+                      <input
+                        type="checkbox"
+                        className="toggle toggle-primary"
+                        checked={enableTools}
+                        onChange={(event) => setEnableTools(event.target.checked)}
+                      />
+                      <span className="label-text font-semibold">{t.tools}</span>
+                    </label>
+                    <div className="divider my-2" />
+                    <p className="text-sm font-semibold">{t.chooseTools}</p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {tools.map((tool) => (
+                        <div
+                          key={tool.id}
+                          className="rounded-box border border-base-200 bg-base-100/80 p-2 text-xs font-semibold"
+                        >
+                          {tool.label[language]}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-
-                <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
-                  <p className="text-base font-semibold text-primary">
-                    {t.webSearchTitle}
-                  </p>
-                  <p className="mb-3 mt-1 text-sm opacity-70">{t.webSearchDescription}</p>
-                  <label className="label cursor-pointer justify-start gap-4">
-                    <input
-                      type="checkbox"
-                      className="toggle toggle-primary"
-                      checked={enableWebSearch}
-                      onChange={(event) => setEnableWebSearch(event.target.checked)}
-                    />
-                    <span className="label-text font-semibold">{t.webSearch}</span>
-                  </label>
-                </div>
-
-                <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:overflow-y-auto">
-                  <p className="text-base font-semibold text-primary">
-                    {t.toolsTitle}
-                  </p>
-                  <p className="mb-3 mt-1 text-sm opacity-70">{t.toolsDescription}</p>
-                  <label className="label cursor-pointer justify-start gap-4">
-                    <input
-                      type="checkbox"
-                      className="toggle toggle-primary"
-                      checked={enableTools}
-                      onChange={(event) => setEnableTools(event.target.checked)}
-                    />
-                    <span className="label-text font-semibold">{t.tools}</span>
-                  </label>
-                  <div className="divider my-2" />
-                  <p className="text-sm font-semibold">{t.chooseTools}</p>
-                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {tools.map((tool) => (
-                      <div
-                        key={tool.id}
-                        className="rounded-box border border-base-200 bg-base-100/80 p-2 text-xs font-semibold"
-                      >
-                        {tool.label[language]}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
             </div>
           </section>
 
