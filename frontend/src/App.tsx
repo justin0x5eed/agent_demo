@@ -355,8 +355,8 @@ Key takeaways: ${userMessage}`
   }, [messages, pending])
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6">
-      <div className="mx-auto flex max-h-full min-h-0 max-w-6xl flex-1 flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6 lg:h-screen lg:overflow-hidden">
+      <div className="mx-auto flex max-h-full min-h-0 max-w-6xl flex-1 flex-col lg:h-full">
         <div className="mb-4 flex justify-end">
           <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
             <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
@@ -384,7 +384,7 @@ Key takeaways: ${userMessage}`
             </div>
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:h-full lg:grid-cols-2 lg:items-stretch">
           <section
             className="card flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-xl"
           >
