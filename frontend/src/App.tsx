@@ -399,12 +399,12 @@ Key takeaways: ${userMessage}`
                   <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                     <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
                     <p className="mb-3 mt-1 text-sm opacity-70">{t.modelDescription}</p>
-                    <label className="label" htmlFor="model-select">
+                    <label className="label mb-1" htmlFor="model-select">
                       <span className="label-text font-semibold">{t.modelLabel}</span>
                     </label>
                     <select
                       id="model-select"
-                      className="select select-bordered w-full"
+                      className="select select-bordered mt-1 w-full"
                       value={selectedModel}
                       onChange={(event) => setSelectedModel(event.target.value)}
                     >
