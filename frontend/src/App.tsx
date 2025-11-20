@@ -66,7 +66,7 @@ const translations = {
     webSearchDescription: '启用 Web 搜索功能让智能体通过网络检索信息。',
     tools: '启用工具',
     toolsTitle: 'Tools 调用',
-    toolsDescription: '挑选智能体可调用的工具，按需扩展能力。',
+    toolsDescription: '启用工具，拓展智能体能力',
     chooseTools: '可用工具',
     modelTitle: '大模型选择',
     modelDescription: '决定智能体回答时调用的大语言模型。',
