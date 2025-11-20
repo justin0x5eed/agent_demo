@@ -362,10 +362,26 @@ Key takeaways: ${userMessage}`
             <div className="card-body flex min-h-0 flex-1 flex-col gap-3 text-sm lg:overflow-y-auto">
               <div className="panel-header flex flex-col gap-3">
                 <header className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-2 sm:gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                     <p className="text-sm font-semibold uppercase tracking-widest text-primary whitespace-nowrap">{t.title}</p>
+                    <div className="flex w-full justify-end sm:hidden">
+                      <label className="sr-only" htmlFor="language-select">
+                        {t.language}
+                      </label>
+                      <select
+                        id="language-select"
+                        className="select select-bordered select-xs w-full max-w-[12rem]"
+                        value={language}
+                        onChange={(event) => setLanguage(event.target.value as Language)}
+                        aria-label="Select interface language"
+                      >
+                        <option value="zh">简体中文</option>
+                        <option value="zh-hant">繁體中文</option>
+                        <option value="en">English</option>
+                      </select>
+                    </div>
                     <div
-                      className="language-switch join flex-nowrap whitespace-nowrap sm:pr-2"
+                      className="language-switch join hidden flex-nowrap whitespace-nowrap sm:flex sm:pr-2"
                       aria-label="Select interface language"
                     >
                       <button
