@@ -10,6 +10,8 @@ body {
 #vite_root {
   width: 100%;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 1024px) {

@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-    <div id="vite_root" data-models="{{ models_json }}">
+    <div id="vite_root" class="min-h-screen w-full" data-models="{{ models_json }}">
         <div class="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-6 py-10 text-center">
             <span class="loading loading-spinner loading-lg text-primary" aria-hidden="true"></span>
             <p class="text-lg font-semibold">正在载入 React 界面…</p>
