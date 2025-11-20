@@ -356,48 +356,46 @@ Key takeaways: ${userMessage}`
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6 lg:h-screen lg:overflow-hidden">
-      <div className="mx-auto flex max-h-full min-h-0 max-w-6xl flex-1 flex-col lg:h-full">
-        <div className="mb-4 flex justify-end">
-          <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
-            <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
-              {t.language}
-            </span>
-            <div className="join">
-              <button
-                className={`btn btn-sm join-item ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => setLanguage('zh')}
-              >
-                简体中文
-              </button>
-              <button
-                className={`btn btn-sm join-item ${language === 'zh-hant' ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => setLanguage('zh-hant')}
-              >
-                繁體中文
-              </button>
-              <button
-                className={`btn btn-sm join-item ${language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => setLanguage('en')}
-              >
-                English
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:h-full lg:grid-cols-2 lg:items-stretch">
-          <section
-            className="card flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-xl"
-          >
+      <div className="mx-auto flex min-h-0 max-w-6xl flex-1 flex-col gap-4 lg:h-full lg:gap-6">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:h-full lg:grid-cols-5 lg:items-stretch">
+          <section className="card flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-xl lg:col-span-2">
             <div className="card-body flex min-h-0 flex-1 flex-col gap-4">
-              <header>
-                <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-                  {t.title}
-                </p>
-                <h1 className="text-3xl font-bold">Agentic RAG DEMO</h1>
-                <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
+              <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+                    {t.title}
+                  </p>
+                  <h1 className="text-3xl font-bold">Agentic RAG DEMO</h1>
+                  <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
+                </div>
+                <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
+                  <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
+                    {t.language}
+                  </span>
+                  <div className="join">
+                    <button
+                      className={`btn btn-sm join-item ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
+                      onClick={() => setLanguage('zh')}
+                    >
+                      简体中文
+                    </button>
+                    <button
+                      className={`btn btn-sm join-item ${language === 'zh-hant' ? 'btn-primary' : 'btn-ghost'}`}
+                      onClick={() => setLanguage('zh-hant')}
+                    >
+                      繁體中文
+                    </button>
+                    <button
+                      className={`btn btn-sm join-item ${language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
+                      onClick={() => setLanguage('en')}
+                    >
+                      English
+                    </button>
+                  </div>
+                </div>
               </header>
 
-              <div className="grid flex-1 min-h-0 grid-cols-1 gap-4 md:grid-cols-2 md:grid-rows-2 md:auto-rows-fr md:items-stretch">
+              <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2 md:auto-rows-[minmax(0,1fr)] md:items-stretch">
                 <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
                   <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
                   <p className="mb-4 mt-2 text-sm opacity-70">{t.modelDescription}</p>
@@ -508,74 +506,74 @@ Key takeaways: ${userMessage}`
                 </div>
               </div>
             </div>
-        </section>
+          </section>
 
-        <section
-          className="card flex h-full min-h-0 flex-col overflow-hidden border border-base-300 bg-base-100 shadow-xl"
-        >
-          <div className="card-body flex min-h-0 flex-1 flex-col">
-            <header className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">{t.chatTitle}</h2>
-                <p className="text-sm opacity-70">{t.chatSubtitle}</p>
-              </div>
-              <button className="btn btn-ghost btn-sm" onClick={handleClear}>
-                {t.clear}
-              </button>
-            </header>
-
-            <div className="flex min-h-0 flex-1 flex-col gap-3">
-              <div
-                ref={chatWindowRef}
-                className="chat-window flex-1 min-h-0 overflow-y-auto rounded-box border border-base-200 p-3"
-              >
-                {messages.map((message, index) => (
-                  <div key={index} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
-                    <div className="chat-header mb-1 text-xs uppercase tracking-wide opacity-60">
-                      {message.role === 'user' ? t.participants.user : t.participants.agent}
-                    </div>
-                    <div className="chat-bubble max-w-full whitespace-pre-line text-left">
-                      {message.content}
-                    </div>
-                    {message.annotations?.length ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {message.annotations.map((annotation) => (
-                          <div key={annotation} className="badge badge-outline">
-                            {annotation}
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-                {pending && (
-                  <div className="chat chat-start opacity-70">
-                    <div className="chat-bubble animate-pulse">...</div>
-                  </div>
-                )}
-              </div>
-
-              <label className="form-control w-full">
-                <textarea
-                  className="textarea textarea-bordered w-full"
-                  rows={3}
-                  placeholder={t.inputPlaceholder}
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                />
-              </label>
-              <div className="flex justify-end gap-2">
-                <button className="btn btn-outline" onClick={handleClear}>
+          <section
+            className="card flex h-full min-h-0 flex-col overflow-hidden border border-base-300 bg-base-100 shadow-xl lg:col-span-3"
+          >
+            <div className="card-body flex min-h-0 flex-1 flex-col">
+              <header className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">{t.chatTitle}</h2>
+                  <p className="text-sm opacity-70">{t.chatSubtitle}</p>
+                </div>
+                <button className="btn btn-ghost btn-sm" onClick={handleClear}>
                   {t.clear}
                 </button>
-                <button className="btn btn-primary" onClick={handleSend} disabled={pending}>
-                  {pending ? '...' : t.send}
-                </button>
+              </header>
+
+              <div className="flex min-h-0 flex-1 flex-col gap-3">
+                <div
+                  ref={chatWindowRef}
+                  className="chat-window flex-1 min-h-0 overflow-y-auto rounded-box border border-base-200 p-3"
+                >
+                  {messages.map((message, index) => (
+                    <div key={index} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
+                      <div className="chat-header mb-1 text-xs uppercase tracking-wide opacity-60">
+                        {message.role === 'user' ? t.participants.user : t.participants.agent}
+                      </div>
+                      <div className="chat-bubble max-w-full whitespace-pre-line text-left">
+                        {message.content}
+                      </div>
+                      {message.annotations?.length ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {message.annotations.map((annotation) => (
+                            <div key={annotation} className="badge badge-outline">
+                              {annotation}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                  {pending && (
+                    <div className="chat chat-start opacity-70">
+                      <div className="chat-bubble animate-pulse">...</div>
+                    </div>
+                  )}
+                </div>
+
+                <label className="form-control w-full">
+                  <textarea
+                    className="textarea textarea-bordered w-full"
+                    rows={3}
+                    placeholder={t.inputPlaceholder}
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                  />
+                </label>
+                <div className="flex justify-end gap-2">
+                  <button className="btn btn-outline" onClick={handleClear}>
+                    {t.clear}
+                  </button>
+                  <button className="btn btn-primary" onClick={handleSend} disabled={pending}>
+                    {pending ? '...' : t.send}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
       </div>
     </div>
   )
