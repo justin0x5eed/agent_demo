@@ -358,7 +358,7 @@ Key takeaways: ${userMessage}`
     <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 px-4 py-6 text-base-content lg:h-screen lg:overflow-hidden lg:px-10 lg:py-4">
       <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-6 lg:h-full lg:gap-8">
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:h-full lg:grid-cols-5 lg:items-stretch">
-          <section className="card flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2">
+          <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2">
             <div className="card-body flex min-h-0 flex-1 flex-col gap-4">
               <header className="flex flex-col gap-2">
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">{t.title}</p>
