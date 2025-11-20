@@ -360,37 +360,42 @@ Key takeaways: ${userMessage}`
         <div className="app-columns grid min-h-0 flex-1 grid-cols-1 gap-5 lg:h-full lg:grid-cols-5 lg:items-stretch">
           <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2 lg:overflow-hidden">
             <div className="card-body flex min-h-0 flex-1 flex-col gap-3 text-sm lg:overflow-y-auto">
-              <header className="flex flex-col gap-1">
-                <p className="text-sm font-semibold uppercase tracking-widest text-primary">{t.title}</p>
-                <h1 className="text-2xl font-bold leading-tight">Agentic RAG DEMO</h1>
-                <p className="text-sm opacity-80">{t.subtitle}</p>
-              </header>
+              <div className="panel-header flex flex-col gap-3">
+                <header className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2 sm:gap-3">
+                    <p className="text-sm font-semibold uppercase tracking-widest text-primary whitespace-nowrap">{t.title}</p>
+                    <div
+                      className="language-switch join flex-nowrap whitespace-nowrap sm:pr-2"
+                      aria-label="Select interface language"
+                    >
+                      <button
+                        className={`btn btn-xs join-item px-1.5 ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setLanguage('zh')}
+                      >
+                        简体中文
+                      </button>
+                      <button
+                        className={`btn btn-xs join-item px-1.5 ${language === 'zh-hant' ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setLanguage('zh-hant')}
+                      >
+                        繁體中文
+                      </button>
+                      <button
+                        className={`btn btn-xs join-item px-1.5 ${language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setLanguage('en')}
+                      >
+                        English
+                      </button>
+                    </div>
+                  </div>
+                  <h1 className="text-2xl font-bold leading-tight whitespace-nowrap">
+                    {language === 'en' ? 'Agentic RAG DEMO' : language === 'zh-hant' ? 'AGENT RAG示範' : 'AGENT RAG演示'}
+                  </h1>
+                  <p className="text-sm opacity-80">{t.subtitle}</p>
+                </header>
+              </div>
 
               <div className="control-grid grid min-h-0 flex-1 grid-cols-1 gap-3 lg:auto-rows-[max-content] lg:grid-rows-none">
-                <div className="panel-tile flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
-                  <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{t.language}</span>
-                  <div className="join">
-                    <button
-                      className={`btn btn-sm join-item ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
-                      onClick={() => setLanguage('zh')}
-                    >
-                      简体中文
-                    </button>
-                    <button
-                      className={`btn btn-sm join-item ${language === 'zh-hant' ? 'btn-primary' : 'btn-ghost'}`}
-                      onClick={() => setLanguage('zh-hant')}
-                    >
-                      繁體中文
-                    </button>
-                    <button
-                      className={`btn btn-sm join-item ${language === 'en' ? 'btn-primary' : 'btn-ghost'}`}
-                      onClick={() => setLanguage('en')}
-                    >
-                      English
-                    </button>
-                  </div>
-                </div>
-
                 <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                   <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
                   <p className="mb-3 mt-1 text-sm opacity-70">{t.modelDescription}</p>
