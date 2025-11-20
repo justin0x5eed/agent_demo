@@ -444,7 +444,7 @@ Key takeaways: ${userMessage}`
                     <label className="label w-full cursor-pointer items-start justify-start gap-2 text-left">
                       <input
                         type="checkbox"
-                        className="toggle toggle-primary"
+                        className="checkbox checkbox-primary mt-1"
                         checked={enableWebSearch}
                         onChange={(event) => setEnableWebSearch(event.target.checked)}
                       />
@@ -507,7 +507,7 @@ Key takeaways: ${userMessage}`
                     <label className="label w-full cursor-pointer items-start justify-start gap-2 text-left">
                       <input
                         type="checkbox"
-                        className="toggle toggle-primary"
+                        className="checkbox checkbox-primary mt-1"
                         checked={enableTools}
                         onChange={(event) => setEnableTools(event.target.checked)}
                       />
