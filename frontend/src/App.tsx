@@ -210,8 +210,6 @@ function App() {
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: t.welcome }])
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
-  const leftPanelRef = useRef<HTMLElement | null>(null)
-  const [panelHeight, setPanelHeight] = useState<number | null>(null)
   const chatWindowRef = useRef<HTMLDivElement | null>(null)
 
   const actionBadges = t.badges
@@ -348,31 +346,6 @@ Key takeaways: ${userMessage}`
   }
 
   useEffect(() => {
-    const updatePanelHeight = () => {
-      if (leftPanelRef.current) {
-        setPanelHeight(leftPanelRef.current.offsetHeight)
-      }
-    }
-
-    updatePanelHeight()
-
-    const resizeObserver = leftPanelRef.current
-      ? new ResizeObserver(updatePanelHeight)
-      : null
-
-    if (leftPanelRef.current && resizeObserver) {
-      resizeObserver.observe(leftPanelRef.current)
-    }
-
-    window.addEventListener('resize', updatePanelHeight)
-
-    return () => {
-      window.removeEventListener('resize', updatePanelHeight)
-      resizeObserver?.disconnect()
-    }
-  }, [])
-
-  useEffect(() => {
     if (chatWindowRef.current) {
       chatWindowRef.current.scrollTo({
         top: chatWindowRef.current.scrollHeight,
@@ -382,8 +355,8 @@ Key takeaways: ${userMessage}`
   }, [messages, pending])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6">
-      <div className="mx-auto max-w-6xl">
+    <div className="flex min-h-screen max-h-screen flex-col overflow-hidden bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6">
+      <div className="mx-auto flex max-h-full min-h-0 max-w-6xl flex-1 flex-col">
         <div className="mb-4 flex justify-end">
           <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
             <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
@@ -411,12 +384,11 @@ Key takeaways: ${userMessage}`
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
           <section
-            ref={leftPanelRef}
-            className="card flex min-h-0 flex-1 flex-col border border-base-300 bg-base-100 shadow-xl"
+            className="card flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-xl"
           >
-            <div className="card-body flex h-full min-h-0 flex-col gap-4">
+            <div className="card-body flex min-h-0 flex-1 flex-col gap-4">
               <header>
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">
                   {t.title}
@@ -536,13 +508,12 @@ Key takeaways: ${userMessage}`
                 </div>
               </div>
             </div>
-          </section>
+        </section>
 
         <section
-          className="card flex min-h-0 flex-1 flex-col overflow-hidden border border-base-300 bg-base-100 shadow-xl"
-          style={panelHeight ? { height: panelHeight } : undefined}
+          className="card flex h-full min-h-0 flex-col overflow-hidden border border-base-300 bg-base-100 shadow-xl"
         >
-          <div className="card-body flex h-full min-h-0 flex-col">
+          <div className="card-body flex min-h-0 flex-1 flex-col">
             <header className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{t.chatTitle}</h2>
