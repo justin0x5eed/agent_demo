@@ -50,7 +50,7 @@ const translations = {
     },
   },
   zh: {
-    title: 'Agent RAG 演示',
+    title: 'Agentic RAG 演示',
     subtitle: '上传文档、切换能力，观察智能体如何规划工作流程。',
     uploadLabel: 'RAG 文档',
     uploadHint: '拖拽文件或点击选择',
@@ -405,7 +405,11 @@ Key takeaways: ${userMessage}`
                     </div>
                   </div>
                   <h1 className="text-2xl font-bold leading-tight whitespace-nowrap">
-                    {language === 'en' ? 'Agentic RAG DEMO' : language === 'zh-hant' ? 'AGENT RAG示範' : 'AGENT RAG演示'}
+                    {language === 'en'
+                      ? 'Agentic RAG DEMO'
+                      : language === 'zh-hant'
+                        ? 'AGENT RAG示範'
+                        : 'Agentic RAG Demo'}
                   </h1>
                   <p className="text-sm opacity-80">{t.subtitle}</p>
                 </header>
