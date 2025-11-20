@@ -9,7 +9,7 @@ const getCsrfToken = () => {
 const translations = {
   en: {
     title: 'Agentic RAG Demo',
-    subtitle: 'Upload documents, toggle capabilities, and watch the agent plan its work.',
+    subtitle: 'Choose models, upload documents, and pair web search for stronger RAG.',
     uploadLabel: 'RAG documents',
     uploadHint: 'Drag & drop files or click to select',
     uploaded: 'uploaded',
@@ -17,7 +17,7 @@ const translations = {
     uploadSuccess: 'Files embedded successfully.',
     uploadError: 'Upload failed. Please try again.',
     knowledgeBaseTitle: 'Knowledge base',
-    knowledgeBaseDescription: 'Keep your domain files close for grounded answers.',
+    knowledgeBaseDescription: 'Upload knowledge base files for grounded answers and fewer hallucinations.',
     supportedFormats: 'Supported formats: txt, doc',
     webSearch: 'Enable web search',
     webSearchTitle: 'Web search',
@@ -51,7 +51,7 @@ const translations = {
   },
   zh: {
     title: 'Agentic RAG 演示',
-    subtitle: '上传文档、切换能力，观察智能体如何规划工作流程。',
+    subtitle: '选择模型、上传文档，结合 Web 搜索实现更强大的检索增强生成。',
     uploadLabel: 'RAG 文档',
     uploadHint: '拖拽文件或点击选择',
     uploaded: '已上传',
@@ -59,7 +59,7 @@ const translations = {
     uploadSuccess: '文件 embedded 成功。',
     uploadError: '上传失败，请重试。',
     knowledgeBaseTitle: '知识库',
-    knowledgeBaseDescription: '上传业务文档，回答更有依据。',
+    knowledgeBaseDescription: '上传知识库文档，回答更有依据，减少模型幻觉。',
     supportedFormats: '支持 txt、doc 格式',
     webSearch: '启用网络搜索',
     webSearchTitle: 'Web 搜索',
@@ -93,7 +93,7 @@ const translations = {
   },
   'zh-hant': {
     title: 'Agentic RAG 示範',
-    subtitle: '上傳文件、切換能力，觀察智慧體如何規劃工作流程。',
+    subtitle: '選擇模型、上傳文件，結合 Web 搜尋實現更強大的檢索增強生成。',
     uploadLabel: 'RAG 文件',
     uploadHint: '拖曳檔案或點擊選擇',
     uploaded: '已上傳',
@@ -101,7 +101,7 @@ const translations = {
     uploadSuccess: '檔案 embedded 成功。',
     uploadError: '上傳失敗，請再試一次。',
     knowledgeBaseTitle: '知識庫',
-    knowledgeBaseDescription: '上傳領域文件，讓答案更有依據。',
+    knowledgeBaseDescription: '上傳知識庫文件，讓答案更有依據，減少模型幻覺。',
     supportedFormats: '支援 txt、doc 格式',
     webSearch: '啟用網路搜尋',
     webSearchTitle: '網路搜尋',
