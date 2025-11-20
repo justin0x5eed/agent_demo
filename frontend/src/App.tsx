@@ -63,7 +63,7 @@ const translations = {
     supportedFormats: '支持 txt、doc 格式',
     webSearch: '启用网络搜索',
     webSearchTitle: 'Web 搜索',
-    webSearchDescription: '启用 Web 搜索功能让智能体通过网络检索信息。',
+    webSearchDescription: '启用 Web 搜索功能让智能体通过搜索引擎检索信息。',
     tools: '启用工具',
     toolsTitle: 'Tools 调用',
     toolsDescription: '启用工具，拓展智能体能力',
