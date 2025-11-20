@@ -14,6 +14,16 @@ body {
   flex-direction: column;
 }
 
+.control-panel,
+.control-panel .card-body,
+.control-panel p,
+.control-panel span,
+.control-panel label,
+.control-panel .label-text-alt {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 1024px) {
   body {
     overflow: hidden;
