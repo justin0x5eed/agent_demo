@@ -355,7 +355,7 @@ Key takeaways: ${userMessage}`
   }, [messages, pending])
 
   return (
-    <div className="flex min-h-screen max-h-screen flex-col overflow-hidden bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 p-3 text-base-content md:p-6">
       <div className="mx-auto flex max-h-full min-h-0 max-w-6xl flex-1 flex-col">
         <div className="mb-4 flex justify-end">
           <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
