@@ -92,7 +92,7 @@ const translations = {
     },
   },
   'zh-hant': {
-    title: 'Agent RAG 示範',
+    title: 'Agentic RAG 示範',
     subtitle: '上傳文件、切換能力，觀察智慧體如何規劃工作流程。',
     uploadLabel: 'RAG 文件',
     uploadHint: '拖曳檔案或點擊選擇',
@@ -408,7 +408,7 @@ Key takeaways: ${userMessage}`
                     {language === 'en'
                       ? 'Agentic RAG DEMO'
                       : language === 'zh-hant'
-                        ? 'AGENT RAG示範'
+                        ? 'Agentic RAG Demo'
                         : 'Agentic RAG Demo'}
                   </h1>
                   <p className="text-sm opacity-80">{t.subtitle}</p>
