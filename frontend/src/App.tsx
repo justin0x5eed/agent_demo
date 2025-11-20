@@ -495,7 +495,7 @@ Key takeaways: ${userMessage}`
                   </label>
                   <div className="divider my-2" />
                   <p className="text-sm font-semibold">{t.chooseTools}</p>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {tools.map((tool) => (
                       <div
                         key={tool.id}
