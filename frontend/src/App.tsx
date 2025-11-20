@@ -456,9 +456,9 @@ Key takeaways: ${userMessage}`
                     </p>
                     <p className="mb-3 mt-1 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
                     <div className="form-control">
-                      <label className="label">
-                        <span className="label-text font-semibold">{t.uploadLabel}</span>
-                        <span className="label-text-alt opacity-70">
+                    <label className="label flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="label-text font-semibold">{t.uploadLabel}</span>
+                      <span className="label-text-alt w-full text-left opacity-70 sm:w-auto sm:text-right">
                           {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
                         </span>
                       </label>
