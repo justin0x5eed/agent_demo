@@ -360,18 +360,15 @@ Key takeaways: ${userMessage}`
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:h-full lg:grid-cols-5 lg:items-stretch">
           <section className="card flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-xl lg:col-span-2">
             <div className="card-body flex min-h-0 flex-1 flex-col gap-4">
-              <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-                    {t.title}
-                  </p>
-                  <h1 className="text-3xl font-bold">Agentic RAG DEMO</h1>
-                  <p className="mt-2 text-sm opacity-80">{t.subtitle}</p>
-                </div>
-                <div className="flex items-center gap-3 rounded-full border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
-                  <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
-                    {t.language}
-                  </span>
+              <header className="flex flex-col gap-2">
+                <p className="text-sm font-semibold uppercase tracking-widest text-primary">{t.title}</p>
+                <h1 className="text-3xl font-bold">Agentic RAG DEMO</h1>
+                <p className="text-sm opacity-80">{t.subtitle}</p>
+              </header>
+
+              <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-rows-[repeat(16,minmax(0,1fr))]">
+                <div className="flex h-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{t.language}</span>
                   <div className="join">
                     <button
                       className={`btn btn-sm join-item ${language === 'zh' ? 'btn-primary' : 'btn-ghost'}`}
@@ -393,10 +390,8 @@ Key takeaways: ${userMessage}`
                     </button>
                   </div>
                 </div>
-              </header>
 
-              <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2 md:auto-rows-[minmax(0,1fr)] md:items-stretch">
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-3">
                   <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
                   <p className="mb-4 mt-2 text-sm opacity-70">{t.modelDescription}</p>
                   <label className="label" htmlFor="model-select">
@@ -416,7 +411,7 @@ Key takeaways: ${userMessage}`
                   </select>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-4">
                   <p className="text-base font-semibold text-primary">
                     {t.knowledgeBaseTitle}
                   </p>
@@ -461,7 +456,7 @@ Key takeaways: ${userMessage}`
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-3">
                   <p className="text-base font-semibold text-primary">
                     {t.webSearchTitle}
                   </p>
@@ -469,7 +464,7 @@ Key takeaways: ${userMessage}`
                   <label className="label cursor-pointer justify-start gap-4">
                     <input
                       type="checkbox"
-                      className="checkbox"
+                      className="toggle toggle-primary"
                       checked={enableWebSearch}
                       onChange={(event) => setEnableWebSearch(event.target.checked)}
                     />
@@ -477,7 +472,7 @@ Key takeaways: ${userMessage}`
                   </label>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-4">
                   <p className="text-base font-semibold text-primary">
                     {t.toolsTitle}
                   </p>
@@ -485,7 +480,7 @@ Key takeaways: ${userMessage}`
                   <label className="label cursor-pointer justify-start gap-4">
                     <input
                       type="checkbox"
-                      className="checkbox"
+                      className="toggle toggle-primary"
                       checked={enableTools}
                       onChange={(event) => setEnableTools(event.target.checked)}
                     />
