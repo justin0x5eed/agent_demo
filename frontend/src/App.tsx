@@ -421,14 +421,16 @@ Key takeaways: ${userMessage}`
                       {t.webSearchTitle}
                     </p>
                     <p className="mb-3 mt-1 text-sm opacity-70">{t.webSearchDescription}</p>
-                    <label className="label cursor-pointer justify-start gap-4">
+                    <label className="label w-full cursor-pointer items-start justify-start gap-2 text-left">
                       <input
                         type="checkbox"
                         className="toggle toggle-neutral"
                         checked={enableWebSearch}
                         onChange={(event) => setEnableWebSearch(event.target.checked)}
                       />
-                      <span className="label-text font-semibold">{t.webSearch}</span>
+                      <span className="label-text min-w-0 flex-1 break-words font-semibold leading-snug">
+                        {t.webSearch}
+                      </span>
                     </label>
                   </div>
 
@@ -482,14 +484,14 @@ Key takeaways: ${userMessage}`
                       {t.toolsTitle}
                     </p>
                     <p className="mb-3 mt-1 text-sm opacity-70">{t.toolsDescription}</p>
-                    <label className="label cursor-pointer justify-start gap-4">
+                    <label className="label w-full cursor-pointer items-start justify-start gap-2 text-left">
                       <input
                         type="checkbox"
                         className="toggle toggle-neutral"
                         checked={enableTools}
                         onChange={(event) => setEnableTools(event.target.checked)}
                       />
-                      <span className="label-text font-semibold">{t.tools}</span>
+                      <span className="label-text min-w-0 flex-1 break-words font-semibold leading-snug">{t.tools}</span>
                     </label>
                     <div className="divider my-2" />
                     <p className="text-sm font-semibold">{t.chooseTools}</p>
