@@ -355,9 +355,9 @@ Key takeaways: ${userMessage}`
   }, [messages, pending])
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 px-4 py-6 text-base-content lg:h-screen lg:overflow-hidden lg:px-10 lg:py-4">
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 lg:h-full lg:gap-7">
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 lg:h-full lg:grid-cols-5 lg:items-stretch">
+    <div className="app-shell flex min-h-screen w-full flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 px-4 py-6 text-base-content lg:h-screen lg:overflow-hidden lg:px-10 lg:py-4">
+      <div className="app-layout mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 lg:h-full lg:gap-7">
+        <div className="app-columns grid min-h-0 flex-1 grid-cols-1 gap-5 lg:h-full lg:grid-cols-5 lg:items-stretch">
           <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2 lg:overflow-hidden">
             <div className="card-body flex min-h-0 flex-1 flex-col gap-3 text-sm lg:overflow-y-auto">
               <header className="flex flex-col gap-1">
@@ -366,8 +366,8 @@ Key takeaways: ${userMessage}`
                 <p className="text-sm opacity-80">{t.subtitle}</p>
               </header>
 
-              <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-rows-[repeat(12,minmax(0,1fr))]">
-                <div className="flex h-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-1">
+              <div className="control-grid grid min-h-0 flex-1 grid-cols-1 gap-3 lg:auto-rows-[max-content] lg:grid-rows-none">
+                <div className="panel-tile flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                   <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{t.language}</span>
                   <div className="join">
                     <button
@@ -391,7 +391,7 @@ Key takeaways: ${userMessage}`
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-2">
+                <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                   <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
                   <p className="mb-3 mt-1 text-sm opacity-70">{t.modelDescription}</p>
                   <label className="label" htmlFor="model-select">
@@ -411,7 +411,7 @@ Key takeaways: ${userMessage}`
                   </select>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-3">
+                <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                   <p className="text-base font-semibold text-primary">
                     {t.knowledgeBaseTitle}
                   </p>
@@ -456,7 +456,7 @@ Key takeaways: ${userMessage}`
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-2">
+                <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                   <p className="text-base font-semibold text-primary">
                     {t.webSearchTitle}
                   </p>
@@ -472,7 +472,7 @@ Key takeaways: ${userMessage}`
                   </label>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-4 lg:overflow-y-auto">
+                <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:overflow-y-auto">
                   <p className="text-base font-semibold text-primary">
                     {t.toolsTitle}
                   </p>
