@@ -424,7 +424,7 @@ Key takeaways: ${userMessage}`
                     <label className="label cursor-pointer justify-start gap-4">
                       <input
                         type="checkbox"
-                        className="toggle toggle-primary"
+                        className="toggle toggle-neutral"
                         checked={enableWebSearch}
                         onChange={(event) => setEnableWebSearch(event.target.checked)}
                       />
@@ -485,7 +485,7 @@ Key takeaways: ${userMessage}`
                     <label className="label cursor-pointer justify-start gap-4">
                       <input
                         type="checkbox"
-                        className="toggle toggle-primary"
+                        className="toggle toggle-neutral"
                         checked={enableTools}
                         onChange={(event) => setEnableTools(event.target.checked)}
                       />
