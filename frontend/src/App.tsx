@@ -356,18 +356,18 @@ Key takeaways: ${userMessage}`
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-base-200 via-base-100 to-base-200 px-4 py-6 text-base-content lg:h-screen lg:overflow-hidden lg:px-10 lg:py-4">
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-6 lg:h-full lg:gap-8">
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:h-full lg:grid-cols-5 lg:items-stretch">
-          <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2">
-            <div className="card-body flex min-h-0 flex-1 flex-col gap-4">
-              <header className="flex flex-col gap-2">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 lg:h-full lg:gap-7">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 lg:h-full lg:grid-cols-5 lg:items-stretch">
+          <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2 lg:overflow-hidden">
+            <div className="card-body flex min-h-0 flex-1 flex-col gap-3 text-sm lg:overflow-y-auto">
+              <header className="flex flex-col gap-1">
                 <p className="text-sm font-semibold uppercase tracking-widest text-primary">{t.title}</p>
-                <h1 className="text-3xl font-bold">Agentic RAG DEMO</h1>
+                <h1 className="text-2xl font-bold leading-tight">Agentic RAG DEMO</h1>
                 <p className="text-sm opacity-80">{t.subtitle}</p>
               </header>
 
-              <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-rows-[repeat(16,minmax(0,1fr))]">
-                <div className="flex h-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-1">
+              <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-rows-[repeat(12,minmax(0,1fr))]">
+                <div className="flex h-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-1">
                   <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{t.language}</span>
                   <div className="join">
                     <button
@@ -391,9 +391,9 @@ Key takeaways: ${userMessage}`
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-3">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-2">
                   <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
-                  <p className="mb-4 mt-2 text-sm opacity-70">{t.modelDescription}</p>
+                  <p className="mb-3 mt-1 text-sm opacity-70">{t.modelDescription}</p>
                   <label className="label" htmlFor="model-select">
                     <span className="label-text font-semibold">{t.modelLabel}</span>
                   </label>
@@ -411,11 +411,11 @@ Key takeaways: ${userMessage}`
                   </select>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-4">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-3">
                   <p className="text-base font-semibold text-primary">
                     {t.knowledgeBaseTitle}
                   </p>
-                  <p className="mb-4 mt-2 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
+                  <p className="mb-3 mt-1 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-semibold">{t.uploadLabel}</span>
@@ -456,11 +456,11 @@ Key takeaways: ${userMessage}`
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-3">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-2">
                   <p className="text-base font-semibold text-primary">
                     {t.webSearchTitle}
                   </p>
-                  <p className="mb-4 mt-2 text-sm opacity-70">{t.webSearchDescription}</p>
+                  <p className="mb-3 mt-1 text-sm opacity-70">{t.webSearchDescription}</p>
                   <label className="label cursor-pointer justify-start gap-4">
                     <input
                       type="checkbox"
@@ -472,11 +472,11 @@ Key takeaways: ${userMessage}`
                   </label>
                 </div>
 
-                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm lg:row-span-4">
+                <div className="flex h-full flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm lg:row-span-4 lg:overflow-y-auto">
                   <p className="text-base font-semibold text-primary">
                     {t.toolsTitle}
                   </p>
-                  <p className="mb-4 mt-2 text-sm opacity-70">{t.toolsDescription}</p>
+                  <p className="mb-3 mt-1 text-sm opacity-70">{t.toolsDescription}</p>
                   <label className="label cursor-pointer justify-start gap-4">
                     <input
                       type="checkbox"
@@ -492,7 +492,7 @@ Key takeaways: ${userMessage}`
                     {tools.map((tool) => (
                       <div
                         key={tool.id}
-                        className="rounded-box border border-base-200 bg-base-100/80 p-3 text-sm font-medium"
+                        className="rounded-box border border-base-200 bg-base-100/80 p-2 text-xs font-semibold"
                       >
                         {tool.label[language]}
                       </div>
