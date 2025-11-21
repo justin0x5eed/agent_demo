@@ -344,8 +344,26 @@ def receive_message(request):
         chunk = doc.page_content.strip()
         formatted_chunks.append(f"Source: {source}\n{chunk}")
 
+    enable_web_search = bool(data.get("enableWebSearch"))
+    web_search_results = None
+    if enable_web_search:
+        try:
+            search_tool = DuckDuckGoSearchRun()
+            web_search_results = search_tool.run(question)
+        except Exception as exc:  # pragma: no cover - web search runtime guard
+            web_search_results = f"Web search failed: {exc}"
+
+    contexts: list[str] = []
     if formatted_chunks:
-        prompt_context = "\n\n".join(formatted_chunks)
+        contexts.append("\n\n".join(formatted_chunks))
+    if web_search_results:
+        if isinstance(web_search_results, (dict, list)):
+            contexts.append(json.dumps(web_search_results, ensure_ascii=False, indent=2))
+        else:
+            contexts.append(str(web_search_results))
+
+    if contexts:
+        prompt_context = "\n\n".join(contexts)
         prompt = (
             "You are a helpful assistant. Use the provided context to answer the "
             "question. If the context does not contain the answer, say you don't know. "
@@ -363,9 +381,6 @@ def receive_message(request):
 
     print(f"[Frontend] Received payload from frontend: {data}")
     answer = llm.invoke(prompt)
-    tool = DuckDuckGoSearchRun()
-
-    #_ = tool.run(question)
 
     response_payload = {
         "prompt": prompt,
@@ -377,5 +392,7 @@ def receive_message(request):
             {"source": doc.metadata.get("source"), "content": doc.page_content}
             for doc in retrieved_docs
         ]
+    if enable_web_search:
+        response_payload["web_search_results"] = web_search_results
 
     return Response(response_payload)
