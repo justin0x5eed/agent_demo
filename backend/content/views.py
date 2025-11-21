@@ -366,17 +366,18 @@ def receive_message(request):
     if contexts:
         prompt_context = "\n\n".join(contexts)
         prompt = (
-            "You are a helpful assistant. Use the provided context to answer the "
-            "question. If the context does not contain the answer, say you don't know. "
-            "Use user asking language response. 请使用用户提问的语言进行回答。\n"
+            "You are a helpful AI assistant. Answer the user's question based on the "
+            "following context. If the context does not provide enough information, "
+            "respond with 'I don't know'. Always reply in the same language the user "
+            "used when asking the question。\n"
             f"Context:\n{prompt_context}\n\nQuestion: {question}\nAnswer:"
         )
     else:
         prompt = (
-            "You are a helpful assistant. There is no knowledge base context "
-            "available, so rely on your general reasoning or tools to answer the "
-            "question as best as you can. Use user asking language response. "
-            "请使用用户提问的语言进行回答。\n"
+            "You are a helpful AI assistant. There is no knowledge base context "
+            "available. If you cannot answer with certainty, respond with 'I don't "
+            "know'. Always reply in the same language the user used when asking the "
+            "question。请使用用户提问的语言进行回答。\n"
             f"Question: {question}\nAnswer:"
         )
 
