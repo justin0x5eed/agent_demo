@@ -558,7 +558,7 @@ Key takeaways: ${userMessage}`
                       <div className="chat-header mb-1 text-xs uppercase tracking-wide opacity-60">
                         {message.role === 'user' ? t.participants.user : t.participants.agent}
                       </div>
-                      <div className="chat-bubble max-w-full whitespace-pre-line text-left">
+                      <div className="chat-bubble max-w-full whitespace-pre-wrap text-left">
                         {message.content}
                       </div>
                       {message.annotations?.length ? (
