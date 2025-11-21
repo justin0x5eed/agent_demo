@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import tempfile
 
 import redis
@@ -382,11 +383,19 @@ def receive_message(request):
     print(f"[Frontend] Received payload from frontend: {data}")
     answer = llm.invoke(prompt)
 
+    thinking = None
+    think_match = re.search(r"<think>(.*?)</think>", str(answer), flags=re.DOTALL)
+    if think_match:
+        thinking = think_match.group(1).strip()
+        answer = re.sub(r"<think>.*?</think>", "", str(answer), flags=re.DOTALL).strip()
+
     response_payload = {
         "prompt": prompt,
         "answer": answer,
         "knowledge_base_hits": len(formatted_chunks),
     }
+    if thinking:
+        response_payload["thinking"] = thinking
     if retrieved_docs:
         response_payload["retrieved_chunks"] = [
             {"source": doc.metadata.get("source"), "content": doc.page_content}
