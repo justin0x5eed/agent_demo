@@ -373,14 +373,26 @@ def receive_message(request):
     if web_search_context:
         contexts["web_search_results"] = web_search_context
 
-    prompt_context_parts: list[str] = []
-    if contexts.get("knowledge_context"):
-        prompt_context_parts.append(contexts["knowledge_context"])
-    if contexts.get("web_search_results"):
-        prompt_context_parts.append(contexts["web_search_results"])
+    prompt_context: str | None = None
+    if contexts:
+        knowledge_context_content = contexts.get("knowledge_context", "")
+        web_search_context_content = contexts.get("web_search_results", "")
 
-    if prompt_context_parts:
-        prompt_context = "\n\n".join(prompt_context_parts)
+        context_sections: list[str] = []
+
+        if knowledge_context_content:
+            context_sections.append(
+                f"knowledge_context:\n{knowledge_context_content}"
+            )
+        if web_search_context_content:
+            context_sections.append(
+                f"web_search_results:\n{web_search_context_content}"
+            )
+
+        if context_sections:
+            prompt_context = "\n\n".join(context_sections)
+
+    if prompt_context:
         prompt = (
             "You are a helpful AI assistant. Answer the user's question based on the "
             "following context. If the context does not provide enough information, "
