@@ -521,7 +521,7 @@ Key takeaways: ${userMessage}`
                           key={tool.id}
                           className="rounded-box border border-base-200 bg-base-100/80 p-2"
                         >
-                          <span className="label-text min-w-0 flex-1 break-words font-semibold leading-snug">
+                          <span className="label-text min-w-0 flex-1 break-words font-semibold leading-snug opacity-70">
                             {tool.label[language]}
                           </span>
                         </div>
