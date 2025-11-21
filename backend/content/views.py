@@ -354,17 +354,33 @@ def receive_message(request):
         except Exception as exc:  # pragma: no cover - web search runtime guard
             web_search_results = f"Web search failed: {exc}"
 
-    contexts: list[str] = []
+    knowledge_context: str | None = None
     if formatted_chunks:
-        contexts.append("\n\n".join(formatted_chunks))
+        knowledge_context = "\n\n".join(formatted_chunks)
+
+    web_search_context: str | None = None
     if web_search_results:
         if isinstance(web_search_results, (dict, list)):
-            contexts.append(json.dumps(web_search_results, ensure_ascii=False, indent=2))
+            web_search_context = json.dumps(
+                web_search_results, ensure_ascii=False, indent=2
+            )
         else:
-            contexts.append(str(web_search_results))
+            web_search_context = str(web_search_results)
 
-    if contexts:
-        prompt_context = "\n\n".join(contexts)
+    contexts: dict[str, str] = {}
+    if knowledge_context:
+        contexts["knowledge_context"] = knowledge_context
+    if web_search_context:
+        contexts["web_search_results"] = web_search_context
+
+    prompt_context_parts: list[str] = []
+    if contexts.get("knowledge_context"):
+        prompt_context_parts.append(contexts["knowledge_context"])
+    if contexts.get("web_search_results"):
+        prompt_context_parts.append(contexts["web_search_results"])
+
+    if prompt_context_parts:
+        prompt_context = "\n\n".join(prompt_context_parts)
         prompt = (
             "You are a helpful AI assistant. Answer the user's question based on the "
             "following context. If the context does not provide enough information, "
@@ -395,6 +411,8 @@ def receive_message(request):
         "answer": answer,
         "knowledge_base_hits": len(formatted_chunks),
     }
+    if contexts:
+        response_payload["contexts"] = contexts
     if thinking:
         response_payload["thinking"] = thinking
     if retrieved_docs:
