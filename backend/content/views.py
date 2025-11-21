@@ -377,7 +377,7 @@ def receive_message(request):
             "You are a helpful AI assistant. There is no knowledge base context "
             "available. If you cannot answer with certainty, respond with 'I don't "
             "know'. Always reply in the same language the user used when asking the "
-            "question。请使用用户提问的语言进行回答。\n"
+            "question。\n"
             f"Question: {question}\nAnswer:"
         )
 
