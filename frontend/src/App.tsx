@@ -17,7 +17,8 @@ const translations = {
     uploadSuccess: 'Files embedded successfully.',
     uploadError: 'Upload failed. Please try again.',
     knowledgeBaseTitle: 'Knowledge base',
-    knowledgeBaseDescription: 'Upload knowledge base files for grounded answers and fewer hallucinations.',
+    knowledgeBaseDescription:
+      'Upload knowledge base files so the agent can answer with private knowledge, broaden its scope, and reduce hallucinations.',
     supportedFormats: 'Supported formats: txt, doc',
     webSearch: 'Enable web search',
     webSearchTitle: 'Web search',
@@ -59,7 +60,7 @@ const translations = {
     uploadSuccess: '文件 embedded 成功。',
     uploadError: '上传失败，请重试。',
     knowledgeBaseTitle: '知识库',
-    knowledgeBaseDescription: '上传知识库文档，回答更有依据，减少模型幻觉。',
+    knowledgeBaseDescription: '上传知识库文档，让智能体基于私有知识库回答问题，扩展智能体知识范围，降低模型幻觉。',
     supportedFormats: '支持 txt、doc 格式',
     webSearch: '启用网络搜索',
     webSearchTitle: 'Web 搜索',
@@ -101,7 +102,8 @@ const translations = {
     uploadSuccess: '檔案 embedded 成功。',
     uploadError: '上傳失敗，請再試一次。',
     knowledgeBaseTitle: '知識庫',
-    knowledgeBaseDescription: '上傳知識庫文件，讓答案更有依據，減少模型幻覺。',
+    knowledgeBaseDescription:
+      '上傳知識庫文件，讓智慧體基於私有知識庫回答問題，擴展智慧體知識範圍，降低模型幻覺。',
     supportedFormats: '支援 txt、doc 格式',
     webSearch: '啟用網路搜尋',
     webSearchTitle: '網路搜尋',
