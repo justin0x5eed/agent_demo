@@ -145,6 +145,9 @@ type Message = {
   annotations?: string[]
 }
 
+const normalizeMessageContent = (content: string): string =>
+  content.replace(/\\n/g, '\n').replace(/\r\n/g, '\n')
+
 const formatBackendResponse = (data: unknown): string => {
   if (data === null || typeof data === 'undefined') {
     return 'No response received from backend.'
@@ -559,7 +562,7 @@ Key takeaways: ${userMessage}`
                         {message.role === 'user' ? t.participants.user : t.participants.agent}
                       </div>
                       <div className="chat-bubble max-w-full whitespace-pre-wrap text-left">
-                        {message.content}
+                        {normalizeMessageContent(message.content)}
                       </div>
                       {message.annotations?.length ? (
                         <div className="mt-2 flex flex-wrap gap-2">
