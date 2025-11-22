@@ -318,12 +318,15 @@ Key takeaways: ${userMessage}`
     const prompt = input.trim()
     setInput('')
 
+    const mode = activeControlTab === 'agentic-rag' ? 'agentic_rag' : 'rag'
+
     const payload = {
       model: selectedModel,
       enableWebSearch,
       enableTools,
       message: prompt,
       file: documents.length > 0 ? documents.map((doc) => doc.name) : null,
+      mode,
     }
 
     try {
