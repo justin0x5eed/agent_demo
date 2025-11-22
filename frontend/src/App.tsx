@@ -49,6 +49,25 @@ const translations = {
       user: 'You',
       agent: 'Agent',
     },
+    panelTabs: {
+      controls: 'Controls',
+      insights: 'Playbook',
+    },
+    panelSwitcherHint: 'Switch panels to view configuration or quickstart guidance.',
+    quickstart: {
+      title: 'Agent quickstart',
+      steps: [
+        'Upload or reference your domain documents.',
+        'Toggle web search or tools depending on the question.',
+        'Pick a foundation model and start the conversation.',
+      ],
+      tipsTitle: 'Power tips',
+      tips: [
+        'Ask follow-up questions after toggling capabilities to see how answers adapt.',
+        'Short prompts work best—let the agent decide when to search or retrieve.',
+        'Share file names in your message to nudge RAG retrieval.',
+      ],
+    },
   },
   zh: {
     title: 'Agentic RAG 演示',
@@ -90,6 +109,21 @@ const translations = {
     participants: {
       user: '你',
       agent: '智能体',
+    },
+    panelTabs: {
+      controls: '控制面板',
+      insights: '使用手册',
+    },
+    panelSwitcherHint: '切换标签查看配置或快速上手指南。',
+    quickstart: {
+      title: '智能体快速上手',
+      steps: ['上传或引用领域文档。', '根据问题打开或关闭网络搜索/工具。', '选择基础模型并开始对话。'],
+      tipsTitle: '进阶技巧',
+      tips: [
+        '切换能力后继续追问，观察回答如何变化。',
+        '保持提示简洁，让智能体自行决定检索或搜索。',
+        '在提问时提及文件名，提示模型进行 RAG 检索。',
+      ],
     },
   },
   'zh-hant': {
@@ -133,6 +167,21 @@ const translations = {
     participants: {
       user: '你',
       agent: '智慧體',
+    },
+    panelTabs: {
+      controls: '控制面板',
+      insights: '使用手冊',
+    },
+    panelSwitcherHint: '切換標籤以查看配置或快速上手指南。',
+    quickstart: {
+      title: '智慧體快速上手',
+      steps: ['上傳或引用領域文件。', '依問題開啟或關閉網路搜尋/工具。', '選擇基礎模型並開始對話。'],
+      tipsTitle: '進階技巧',
+      tips: [
+        '切換能力後繼續追問，觀察回答如何改變。',
+        '保持提示簡潔，讓智慧體自行決定檢索或搜尋。',
+        '提問時提及檔名，提示模型進行 RAG 檢索。',
+      ],
     },
   },
 } as const
@@ -216,6 +265,7 @@ function App() {
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
   const chatWindowRef = useRef<HTMLDivElement | null>(null)
+  const [activePanel, setActivePanel] = useState<'controls' | 'insights'>('controls')
 
   const actionBadges = t.badges
 
@@ -364,6 +414,26 @@ Key takeaways: ${userMessage}`
       <div className="app-layout mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 lg:h-full lg:gap-7">
         <div className="app-columns grid min-h-0 flex-1 grid-cols-1 gap-5 lg:h-full lg:grid-cols-5 lg:items-stretch">
           <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2 lg:overflow-hidden">
+            <div className="panel-tab-strip" role="tablist" aria-label={t.panelSwitcherHint}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activePanel === 'controls'}
+                className={`panel-tab ${activePanel === 'controls' ? 'is-active' : ''}`}
+                onClick={() => setActivePanel('controls')}
+              >
+                {t.panelTabs.controls}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activePanel === 'insights'}
+                className={`panel-tab ${activePanel === 'insights' ? 'is-active' : ''}`}
+                onClick={() => setActivePanel('insights')}
+              >
+                {t.panelTabs.insights}
+              </button>
+            </div>
             <div className="card-body flex min-h-0 flex-1 flex-col gap-3 text-sm lg:overflow-y-auto">
               <div className="panel-header flex flex-col gap-3">
                 <header className="flex flex-col gap-2">
@@ -417,9 +487,11 @@ Key takeaways: ${userMessage}`
                         : 'Agentic RAG Demo'}
                   </h1>
                   <p className="text-sm opacity-80">{t.subtitle}</p>
+                  <p className="text-xs opacity-60 sm:text-right">{t.panelSwitcherHint}</p>
                 </header>
               </div>
 
+              {activePanel === 'controls' ? (
                 <div className="control-grid grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2 md:grid-rows-none lg:auto-rows-[max-content]">
                   <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                     <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
@@ -465,9 +537,9 @@ Key takeaways: ${userMessage}`
                     </p>
                     <p className="mb-3 mt-1 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
                     <div className="form-control">
-                    <label className="label flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="label-text font-semibold">{t.uploadLabel}</span>
-                      <span className="label-text-alt w-full text-left opacity-70 sm:w-auto sm:text-right">
+                      <label className="label flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="label-text font-semibold">{t.uploadLabel}</span>
+                        <span className="label-text-alt w-full text-left opacity-70 sm:w-auto sm:text-right">
                           {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
                         </span>
                       </label>
@@ -534,6 +606,37 @@ Key takeaways: ${userMessage}`
                     </div>
                   </div>
                 </div>
+              ) : (
+                <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-base font-semibold text-primary">{t.quickstart.title}</p>
+                      <p className="text-sm opacity-70">{t.panelSwitcherHint}</p>
+                    </div>
+                    <div className="badge badge-primary badge-outline">{t.panelTabs.insights}</div>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    <ol className="list-decimal space-y-2 rounded-box bg-base-200/70 p-3 text-sm">
+                      {t.quickstart.steps.map((step, index) => (
+                        <li key={index} className="leading-snug">
+                          {step}
+                        </li>
+                      ))}
+                    </ol>
+                    <div className="rounded-box border border-primary/30 bg-primary/5 p-3">
+                      <p className="text-sm font-semibold text-primary">{t.quickstart.tipsTitle}</p>
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {t.quickstart.tips.map((tip, index) => (
+                          <li key={index} className="flex gap-2 leading-snug">
+                            <span className="text-primary">•</span>
+                            <span className="flex-1">{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 

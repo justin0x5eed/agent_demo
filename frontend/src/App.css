@@ -34,6 +34,43 @@ body {
   grid-auto-rows: max-content;
 }
 
+.panel-tab-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem 0.25rem;
+  margin: -0.25rem -0.25rem 0;
+}
+
+.panel-tab {
+  position: relative;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+  color: rgba(15, 23, 42, 0.7);
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.65rem 0.65rem 0 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: color 150ms ease, box-shadow 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.panel-tab:not(.is-active) {
+  opacity: 0.8;
+}
+
+.panel-tab.is-active {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(1px);
+}
+
+.panel-tab:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.8);
+  outline-offset: 2px;
+}
+
 .panel-tile {
   height: auto;
   min-height: 0;
