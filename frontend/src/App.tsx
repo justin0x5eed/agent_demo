@@ -215,6 +215,7 @@ function App() {
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: t.welcome }])
   const [input, setInput] = useState('')
   const [pending, setPending] = useState(false)
+  const [activePanel, setActivePanel] = useState<'rag' | 'agentic'>('rag')
   const chatWindowRef = useRef<HTMLDivElement | null>(null)
 
   const actionBadges = t.badges
@@ -364,6 +365,28 @@ Key takeaways: ${userMessage}`
       <div className="app-layout mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 lg:h-full lg:gap-7">
         <div className="app-columns grid min-h-0 flex-1 grid-cols-1 gap-5 lg:h-full lg:grid-cols-5 lg:items-stretch">
           <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2 lg:overflow-hidden">
+            <div className="flex items-center justify-between border-b border-base-300 px-5 pt-4">
+              <div className="tabs control-tabs tabs-box" role="tablist" aria-label="Control panel tabs">
+                <input
+                  type="radio"
+                  name="control-panel"
+                  role="tab"
+                  className="tab rag-tab"
+                  aria-label="RAG"
+                  checked={activePanel === 'rag'}
+                  onChange={() => setActivePanel('rag')}
+                />
+                <input
+                  type="radio"
+                  name="control-panel"
+                  role="tab"
+                  className="tab agentic-tab"
+                  aria-label="Agentic RAG"
+                  checked={activePanel === 'agentic'}
+                  onChange={() => setActivePanel('agentic')}
+                />
+              </div>
+            </div>
             <div className="card-body flex min-h-0 flex-1 flex-col gap-3 text-sm lg:overflow-y-auto">
               <div className="panel-header flex flex-col gap-3">
                 <header className="flex flex-col gap-2">
@@ -420,6 +443,7 @@ Key takeaways: ${userMessage}`
                 </header>
               </div>
 
+              {activePanel === 'rag' && (
                 <div className="control-grid grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2 md:grid-rows-none lg:auto-rows-[max-content]">
                   <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
                     <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
@@ -465,9 +489,9 @@ Key takeaways: ${userMessage}`
                     </p>
                     <p className="mb-3 mt-1 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
                     <div className="form-control">
-                    <label className="label flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="label-text font-semibold">{t.uploadLabel}</span>
-                      <span className="label-text-alt w-full text-left opacity-70 sm:w-auto sm:text-right">
+                      <label className="label flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="label-text font-semibold">{t.uploadLabel}</span>
+                        <span className="label-text-alt w-full text-left opacity-70 sm:w-auto sm:text-right">
                           {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
                         </span>
                       </label>
@@ -534,6 +558,124 @@ Key takeaways: ${userMessage}`
                     </div>
                   </div>
                 </div>
+              )}
+
+              {activePanel === 'agentic' && (
+                <div className="control-grid grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2 md:grid-rows-none lg:auto-rows-[max-content]">
+                  <div className="panel-tile flex flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
+                    <p className="text-base font-semibold text-primary">{t.modelTitle}</p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.modelDescription}</p>
+                    <label className="label mb-1" htmlFor="model-select-agentic">
+                      <span className="label-text font-semibold">{t.modelLabel}</span>
+                    </label>
+                    <select
+                      id="model-select-agentic"
+                      className="select select-bordered mt-1 w-full"
+                      value={selectedModel}
+                      onChange={(event) => setSelectedModel(event.target.value)}
+                    >
+                      {modelOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm">
+                    <p className="text-base font-semibold text-primary">
+                      {t.webSearchTitle}
+                    </p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.webSearchDescription}</p>
+                    <label className="label w-full cursor-pointer items-start justify-start gap-2 text-left">
+                      <input
+                        type="checkbox"
+                        className="checkbox"
+                        checked={enableWebSearch}
+                        onChange={(event) => setEnableWebSearch(event.target.checked)}
+                      />
+                      <span className="label-text min-w-0 flex-1 break-words font-semibold leading-snug">
+                        {t.webSearch}
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm md:col-span-2">
+                    <p className="text-base font-semibold text-primary">
+                      {t.knowledgeBaseTitle}
+                    </p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.knowledgeBaseDescription}</p>
+                    <div className="form-control">
+                      <label className="label flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="label-text font-semibold">{t.uploadLabel}</span>
+                        <span className="label-text-alt w-full text-left opacity-70 sm:w-auto sm:text-right">
+                          {documents.length ? `${documents.length} ${t.uploaded}` : t.uploadHint}
+                        </span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".txt,.doc"
+                        multiple
+                        className="file-input file-input-bordered"
+                        onChange={handleUpload}
+                      />
+                      <p className="mt-2 text-xs text-base-content/60">{t.supportedFormats}</p>
+                      {uploadStatus === 'uploading' && (
+                        <p className="mt-2 text-xs text-info">{t.uploading}</p>
+                      )}
+                      {uploadStatus === 'success' && (
+                        <p className="mt-2 text-xs text-success">{t.uploadSuccess}</p>
+                      )}
+                      {uploadStatus === 'error' && (
+                        <p className="mt-2 text-xs text-error">
+                          {t.uploadError}
+                          {uploadError ? ` (${uploadError})` : null}
+                        </p>
+                      )}
+                      {documents.length > 0 && (
+                        <ul className="mt-2 space-y-1 rounded-box bg-base-200 p-3 text-sm">
+                          {documents.map((file) => (
+                            <li key={file.name} className="flex items-center justify-between">
+                              <span>{file.name}</span>
+                              <span className="text-xs opacity-60">{(file.size / 1024).toFixed(1)} KB</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="panel-tile flex min-h-0 flex-col rounded-2xl border border-base-300 bg-base-100/70 p-3 shadow-sm md:col-span-2 lg:overflow-y-auto">
+                    <p className="text-base font-semibold text-primary">
+                      {t.toolsTitle}
+                    </p>
+                    <p className="mb-3 mt-1 text-sm opacity-70">{t.toolsDescription}</p>
+                    <label className="label w-full cursor-pointer items-start justify-start gap-2 text-left">
+                      <input
+                        type="checkbox"
+                        className="checkbox"
+                        checked={enableTools}
+                        onChange={(event) => setEnableTools(event.target.checked)}
+                      />
+                      <span className="label-text min-w-0 flex-1 break-words font-semibold leading-snug">{t.tools}</span>
+                    </label>
+                    <div className="divider my-2" />
+                    <p className="text-sm font-semibold">{t.chooseTools}</p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {tools.map((tool) => (
+                        <div
+                          key={tool.id}
+                          className="rounded-box border border-base-200 bg-base-100/80 p-2"
+                        >
+                          <span className="label-text min-w-0 flex-1 break-words font-semibold leading-snug opacity-70">
+                            {tool.label[language]}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 

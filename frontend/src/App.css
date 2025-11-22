@@ -133,3 +133,44 @@ dialog::backdrop {
   border-radius: 9999px;
 }
 
+.control-tabs.tabs-box {
+  gap: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  background: linear-gradient(145deg, hsl(var(--b2)), hsl(var(--b1)) 80%);
+  border-radius: 14px;
+  border: 1px solid hsl(var(--b3));
+  box-shadow: inset 0 1px 0 hsl(var(--b1) / 0.6), 0 12px 28px -22px rgba(15, 23, 42, 0.45);
+}
+
+.control-tabs .tab {
+  min-width: 7rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: hsl(var(--bc) / 0.72);
+  border-color: hsl(var(--b3));
+  transition: color 0.2s ease, box-shadow 0.25s ease, background-color 0.25s ease,
+    transform 0.18s ease;
+}
+
+.control-tabs .tab:hover {
+  color: hsl(var(--bc));
+  transform: translateY(-1px);
+}
+
+.control-tabs .tab:checked {
+  color: hsl(var(--bc));
+  box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.55), 0 0 0 1px hsl(var(--b3));
+}
+
+.control-tabs .rag-tab:checked {
+  background: linear-gradient(135deg, hsl(var(--p) / 0.18), hsl(var(--p) / 0.26));
+  color: hsl(var(--p));
+  border-color: hsl(var(--p));
+}
+
+.control-tabs .agentic-tab:checked {
+  background: linear-gradient(135deg, hsl(var(--in) / 0.18), hsl(var(--in) / 0.26));
+  color: hsl(var(--in));
+  border-color: hsl(var(--in));
+}
+
