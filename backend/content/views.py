@@ -435,4 +435,12 @@ def receive_message(request):
     if enable_web_search:
         response_payload["web_search_results"] = web_search_results
 
+    from langgraph.prebuilt import create_react_agent
+    retriever = vector_store.as_retriever(search_kwargs={"k": 3})
+    tools = [retriever, search_tool]
+    agent = create_react_agent(
+        model=llm,
+        tools=tools,
+    )
+
     return Response(response_payload)
