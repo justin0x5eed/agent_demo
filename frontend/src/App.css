@@ -48,6 +48,23 @@ body {
   min-width: 0;
 }
 
+.mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.mode-tab {
+  width: 100%;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.mode-tab:focus-visible {
+  outline-offset: 4px;
+}
+
 @media (min-width: 1024px) {
   body {
     overflow: hidden;

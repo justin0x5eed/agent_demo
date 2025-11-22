@@ -177,6 +177,20 @@ const modelLabels: Record<string, string> = {
   'gpt-oss': 'GPT-OSS',
 }
 
+const controlTabs = [
+  {
+    id: 'rag',
+    label: 'RAG',
+  },
+  {
+    id: 'agentic-rag',
+    label: 'Agentic RAG',
+  },
+] satisfies {
+  id: 'rag' | 'agentic-rag'
+  label: string
+}[]
+
 const readBackendModels = (): Record<string, string> => {
   if (typeof document === 'undefined') return {}
 
@@ -541,28 +555,23 @@ Key takeaways: ${userMessage}`
           <section className="card control-panel flex h-full min-h-0 flex-col border border-base-300 bg-base-100 shadow-2xl lg:col-span-2 lg:overflow-hidden">
             <div className="flex h-full flex-col">
               <div className="px-6 pt-4">
-                <div className="tabs tabs-box tabs-lg" role="tablist" aria-label="Control panel tabs">
-                  {[{ id: 'rag', label: 'RAG' }, { id: 'agentic-rag', label: 'Agentic RAG' }].map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      role="tab"
-                      className={`tab ${activeControlTab === tab.id ? 'tab-active font-semibold' : 'opacity-70'}`}
-                      aria-selected={activeControlTab === tab.id}
-                      onClick={() => setActiveControlTab(tab.id as typeof activeControlTab)}
-                    >
-                      <span className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          className="checkbox checkbox-primary checkbox-xs"
-                          checked={activeControlTab === tab.id}
-                          readOnly
-                          aria-label={activeControlTab === tab.id ? `${tab.label} selected` : `${tab.label} not selected`}
-                        />
-                        <span>{tab.label}</span>
-                      </span>
-                    </button>
-                  ))}
+                <div className="mode-tabs" role="tablist" aria-label="Control panel modes">
+                  {controlTabs.map((tab) => {
+                    const isActive = activeControlTab === tab.id
+
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        role="tab"
+                        className={`mode-tab tab tab-bordered ${isActive ? 'tab-active' : ''}`}
+                        aria-selected={isActive}
+                        onClick={() => setActiveControlTab(tab.id)}
+                      >
+                        {tab.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
               <div className="flex min-h-0 flex-1 flex-col">
